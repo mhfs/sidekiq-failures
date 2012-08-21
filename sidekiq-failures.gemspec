@@ -15,6 +15,12 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = Sidekiq::Failures::VERSION
 
-  gem.add_dependency "sidekiq"
+  # FIXME uncomment once tab support is released
+  # gem.add_dependency "sidekiq"
+  gem.add_dependency "slim"
+  gem.add_dependency "sinatra"
+  gem.add_dependency "sprockets"
+
   gem.add_development_dependency "rake"
+  gem.add_development_dependency "rack-test"
 end
