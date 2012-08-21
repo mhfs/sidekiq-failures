@@ -11,8 +11,6 @@ end
 Sidekiq::Web.register Sidekiq::Failures::WebExtension
 Sidekiq::Web.tabs << "Failures"
 
-Sidekiq.configure_server do |config|
-  config.server_middleware do |chain|
-    chain.add Sidekiq::Failures::Middleware
-  end
+Sidekiq.server_middleware do |chain|
+  chain.add Sidekiq::Failures::Middleware
 end
