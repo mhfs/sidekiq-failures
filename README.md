@@ -1,6 +1,11 @@
 # Sidekiq::Failures
 
-TODO: Write a gem description
+Keeps track of Sidekiq failed jobs and adds a tab to the Web UI to let you browse
+them. Makes use of Sidekiq's custom tabs and middlewares.
+
+Note that each failed retry will create a new failed job. This might result in a
+prety big failures list. Think twice before using this project. In most cases
+automatic retries allied with exception notifications will be enough.
 
 ## Installation
 
@@ -12,13 +17,9 @@ And then execute:
 
     $ bundle
 
-Or install it yourself as:
-
-    $ gem install sidekiq-failures
-
 ## Usage
 
-TODO: Write usage instructions here
+Simply having the gem in your Gemfile should be enough.
 
 ## Contributing
 
