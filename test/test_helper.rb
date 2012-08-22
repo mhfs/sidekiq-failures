@@ -5,8 +5,6 @@ require "minitest/mock"
 require "rack/test"
 
 require "sidekiq"
-require "sidekiq/processor"
-
 require "sidekiq-failures"
 
 Celluloid.logger = nil

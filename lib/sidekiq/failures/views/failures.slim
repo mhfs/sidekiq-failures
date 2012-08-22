@@ -1,1 +1,26 @@
 h1 Failed Jobs
+
+- if @messages.size > 0
+  == slim :_paging, :locals => { :url => "#{root_path}queues/#{@name}" }
+
+  table class="table table-striped table-bordered"
+    tr
+      th Worker
+      th Args
+      th Queue
+      th Exception
+      th Error
+      th Failed At
+    - @messages.each do |msg|
+      tr
+        td= msg['worker']
+        td= msg['payload']['args'].inspect[0..100]
+        td= msg['queue']
+        td= msg['exception']
+        td= msg['error']
+        td= msg['failed_at']
+
+  == slim :_paging, :locals => { :url => "#{root_path}queues/#{@name}" }
+- else
+  p No failed jobs found.
+  a href="#{root_path}" Back

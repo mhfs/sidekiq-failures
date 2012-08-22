@@ -1,4 +1,5 @@
 require "sidekiq/web"
+require "sidekiq/processor"
 require "sidekiq/failures/version"
 require "sidekiq/failures/middleware"
 require "sidekiq/failures/web_extension"
