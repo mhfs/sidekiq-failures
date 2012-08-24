@@ -1,4 +1,4 @@
-# Sidekiq::Failures
+# Sidekiq::Failures [![Build Status](https://secure.travis-ci.org/mhfs/sidekiq-failures.png)](http://travis-ci.org/mhfs/sidekiq-failures)
 
 Keeps track of Sidekiq failed jobs and adds a tab to the Web UI to let you browse
 them. Makes use of Sidekiq's custom tabs and middleware chain.
