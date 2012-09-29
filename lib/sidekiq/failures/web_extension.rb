@@ -18,6 +18,12 @@ module Sidekiq
 
           slim :failures
         end
+
+        app.post "/failures/remove" do
+          Sidekiq.redis {|c| c.del(:failed) }
+
+          redirect "#{root_path}/failures"
+        end
       end
     end
   end

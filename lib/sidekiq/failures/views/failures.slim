@@ -20,6 +20,9 @@ h1 Failed Jobs
         td= msg['error']
         td= msg['failed_at']
 
+  form.form-horizontal action="#{root_path}failures/remove" method="post"
+    input.btn.btn-danger type="submit" name="delete" value="Clear All"
+
   == slim :_paging, :locals => { :url => "#{root_path}queues/#{@name}" }
 - else
   p No failed jobs found.
