@@ -34,7 +34,6 @@ Your failed jobs will be visible via a Failures tab in the Web UI.
 ## TODO and Limitations
 
 * Skip failures of specific workers (or the opposite).
-* Remove all failed jobs via Web UI.
 * Trigger retry of specific failed jobs via Web UI.
 * Deal with retries. Maybe just track a failure when there's no attempt left.
 
