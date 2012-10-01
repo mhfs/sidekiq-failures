@@ -9,10 +9,6 @@ Note that each failed retry will create a new failed job. This might result in a
 pretty big failures list. Think twice before using this project. In most cases
 automatic retries allied to exception notifications will be enough.
 
-## Important Note!
-
-This is an ongoing, alpha level project. Be prepared that the API might change and bugs might occur.
-
 ## Installation
 
 Add this line to your application's Gemfile:
