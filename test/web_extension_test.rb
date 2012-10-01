@@ -28,13 +28,40 @@ module Sidekiq
       last_response.body.must_match /No failed jobs found/
     end
 
-    it 'can display failures page with failures listed' do
-      create_sample_failure
-      get '/failures'
-      last_response.status.must_equal 200
-      last_response.body.must_match /HardWorker/
-      last_response.body.must_match /ArgumentError/
-      last_response.body.wont_match /No failed jobs found/
+    describe 'when there are failures' do
+      before do
+        create_sample_failure
+        get '/failures'
+      end
+
+      it 'should be successful' do
+        last_response.status.must_equal 200
+      end
+
+      it 'can display failures page with failures listed' do
+        last_response.body.must_match /Failed Jobs/
+        last_response.body.must_match /HardWorker/
+        last_response.body.must_match /ArgumentError/
+        last_response.body.wont_match /No failed jobs found/
+      end
+
+      it 'has the clear all form and action' do
+        last_response.body.must_match /failures\/remove/
+        last_response.body.must_match /method=\"post/
+        last_response.body.must_match /Clear All/
+      end
+
+      it 'can remove all failures' do
+        last_response.body.must_match /HardWorker/
+
+        post '/failures/remove'
+        last_response.status.must_equal 302
+        last_response.location.must_match /failures$/
+
+        get '/failures'
+        last_response.status.must_equal 200
+        last_response.body.must_match /No failed jobs found/
+      end
     end
 
     def create_sample_failure
