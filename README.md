@@ -5,9 +5,8 @@ them. Makes use of Sidekiq's custom tabs and middleware chain.
 
 It mimics the way Resque keeps track of failures.
 
-Note that each failed retry will create a new failed job. This might result in a
-pretty big failures list. Think twice before using this project. In most cases
-automatic retries allied to exception notifications will be enough.
+TIP: Note that each failed job/retry will create a new failed job that will
+only be removed by you manually. This might result in a pretty big failures list.
 
 ## Installation
 
