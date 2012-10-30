@@ -8,17 +8,18 @@ h1 Failed Jobs
       th Worker
       th Args
       th Queue
-      th Exception
-      th Error
       th Failed At
+      th Exception
     - @messages.each do |msg|
       tr
         td= msg['worker']
         td= msg['payload']['args'].inspect[0..100]
         td= msg['queue']
-        td= msg['exception']
-        td= msg['error']
         td= msg['failed_at']
+        td
+          = "#{msg['exception']}: "
+          a.backtrace href="#" onclick="$(this).next().toggle()"  =msg['error']
+          pre style="display:none; font-size: 0.8em" = msg['backtrace'].join("\n")
 
   form.form-horizontal action="#{root_path}failures/remove" method="post"
     input.btn.btn-danger type="submit" name="delete" value="Clear All"
