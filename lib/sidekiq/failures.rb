@@ -10,7 +10,7 @@ module Sidekiq
 end
 
 Sidekiq::Web.register Sidekiq::Failures::WebExtension
-Sidekiq::Web.tabs << "Failures"
+Sidekiq::Web.tabs["Failures"] = "failures"
 
 Sidekiq.server_middleware do |chain|
   chain.add Sidekiq::Failures::Middleware
