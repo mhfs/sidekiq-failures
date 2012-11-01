@@ -10,7 +10,13 @@ module Sidekiq
 end
 
 Sidekiq::Web.register Sidekiq::Failures::WebExtension
-Sidekiq::Web.tabs["Failures"] = "failures"
+
+if Sidekiq::Web.tabs.is_a?(Array)
+  # For sidekiq < 2.5
+  Sidekiq::Web.tabs << "failures"
+else
+  Sidekiq::Web.tabs["Failures"] = "failures"
+end
 
 Sidekiq.server_middleware do |chain|
   chain.add Sidekiq::Failures::Middleware

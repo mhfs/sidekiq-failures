@@ -17,7 +17,7 @@ module Sidekiq
       get '/'
 
       last_response.status.must_equal 200
-      last_response.body.must_match /Sidekiq is idle/
+      last_response.body.must_match /Sidekiq/
       last_response.body.must_match /Failures/
     end
 
