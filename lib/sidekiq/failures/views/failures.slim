@@ -1,10 +1,13 @@
-h1 Failed Jobs
+header.row
+  .span5
+    h3 Failed Jobs
+  .span4
+    - if @messages.size > 0
+      == slim :_paging, :locals => { :url => "#{root_path}failures/#@name" }
 
 - if @messages.size > 0
-  == slim :_paging, :locals => { :url => "#{root_path}failures/#@name" }
-
-  table class="table table-striped table-bordered"
-    tr
+  table class="table table-striped table-bordered table-white" style="overflow: hidden;"
+    thead
       th Worker
       th Args
       th Queue
@@ -15,16 +18,18 @@ h1 Failed Jobs
         td= msg['worker']
         td= msg['payload']['args'].inspect[0..100]
         td= msg['queue']
-        td= msg['failed_at']
         td
-          = "#{msg['exception']}: "
-          a.backtrace href="#" onclick="$(this).next().toggle()"  =msg['error']
-          pre style="display:none; font-size: 0.8em" = msg['backtrace'].join("\n")
+          time datetime="#{Time.parse(msg['failed_at']).getutc.iso8601}"
+            = msg['failed_at']
+        td style="width: 450px;"
+          div style="width: 450px; overflow: hidden;"
+            = "#{msg['exception']}: "
+            a.backtrace href="#" onclick="$(this).next().toggle(); return false"  =msg['error']
+            pre style="display:none; width: 95%; max-height: 30em; font-size: 0.8em; overflow: auto; white-space: nowrap;" == msg['backtrace'].join("<br />")
 
   form.form-horizontal action="#{root_path}failures/remove" method="post"
-    input.btn.btn-danger type="submit" name="delete" value="Clear All"
+    input.btn.btn-danger.btn-small.pull-right type="submit" name="delete" value="Clear All"
 
   == slim :_paging, :locals => { :url => "#{root_path}failures/#@name" }
 - else
-  p No failed jobs found.
-  a href="#{root_path}" Back
+  .alert.alert-success  No failed jobs found.
