@@ -14,7 +14,7 @@ module Sidekiq
           :queue => queue
         }
 
-        Sidekiq.redis { |conn| conn.rpush(:failed, Sidekiq.dump_json(data)) }
+        Sidekiq.redis { |conn| conn.lpush(:failed, Sidekiq.dump_json(data)) }
 
         raise
       end
