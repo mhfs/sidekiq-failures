@@ -9,6 +9,7 @@ require "rack/test"
 
 require "sidekiq"
 require "sidekiq-failures"
+require "sidekiq/processor"
 
 Celluloid.logger = nil
 Sidekiq.logger.level = Logger::ERROR

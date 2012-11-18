@@ -9,6 +9,7 @@ module Sidekiq
         $invokes = 0
         boss = MiniTest::Mock.new
         @processor = ::Sidekiq::Processor.new(boss)
+        Sidekiq.server_middleware {|chain| chain.add Sidekiq::Failures::Middleware }
         Sidekiq.redis = REDIS
         Sidekiq.redis { |c| c.flushdb }
       end
