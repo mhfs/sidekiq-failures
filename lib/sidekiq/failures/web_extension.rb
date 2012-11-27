@@ -20,7 +20,10 @@ module Sidekiq
         end
 
         app.post "/failures/remove" do
-          Sidekiq.redis {|c| c.del(:failed) }
+          Sidekiq.redis do |redis|
+            redis.del("failed")
+            redis.set("stat:failed", 0)
+          end
 
           redirect "#{root_path}failures"
         end
