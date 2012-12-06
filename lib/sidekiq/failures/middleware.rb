@@ -1,6 +1,8 @@
 module Sidekiq
   module Failures
     class Middleware
+
+
       def call(worker, msg, queue)
         yield
       rescue => e
@@ -13,10 +15,27 @@ module Sidekiq
           :worker => msg['class'],
           :queue => queue
         }
-
-        Sidekiq.redis { |conn| conn.lpush(:failed, Sidekiq.dump_json(data)) }
+      
+        unless Sidekiq::Failures.record_after_max_retries && retries_pending?(msg)
+          Sidekiq.redis { |conn| conn.lpush(:failed, Sidekiq.dump_json(data)) }
+        end
 
         raise
+      end
+
+      private 
+
+      def retries_pending? msg
+        retry_count(msg) < retry_attempts(msg)
+      end
+
+      def retry_count msg
+        msg['retry_count'] || 0
+      end
+
+      def retry_attempts msg
+        Sidekiq::Middleware::Server::RetryJobs.new.retry_attempts_from(msg['retry'], 
+          Sidekiq::Middleware::Server::RetryJobs::DEFAULT_MAX_RETRY_ATTEMPTS)
       end
     end
   end
