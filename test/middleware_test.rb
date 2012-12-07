@@ -37,6 +37,60 @@ module Sidekiq
 
         assert_equal 1, $invokes
       end
+
+      describe 'record failures on max retries' do
+        before do
+          Sidekiq::Failures.record_after_max_retries = true
+        end
+
+        after do
+          Sidekiq::Failures.record_after_max_retries = nil
+        end
+
+        def assert_failure_count count
+          Sidekiq.redis { |conn| assert_equal count, conn.llen('failed') || 0 }
+        end
+
+        def run_worker retry_count = nil
+          assert_failure_count 0
+          msg = Sidekiq.dump_json({ 'class' => MockWorker.to_s, 'retry_count' => retry_count, 'args' => ['myarg'] })
+          assert_raises TestException do
+            @processor.process(msg, 'default')
+          end
+        end
+
+        describe '1st failure' do
+
+          it 'does not fail the message' do
+            run_worker 
+            assert_failure_count 0
+            assert_equal 1, $invokes
+          end
+
+        end
+
+        describe '24th failure' do
+
+          it 'does not fail the message' do
+            run_worker 24
+            assert_failure_count 0
+            assert_equal 1, $invokes
+          end
+
+        end
+
+        describe '25th failure' do
+
+          it 'fails the message' do
+            run_worker 25
+            assert_failure_count 1
+            assert_equal 1, $invokes
+          end
+
+        end
+
+      end
+
     end
   end
 end
