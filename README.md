@@ -5,8 +5,9 @@ them. Makes use of Sidekiq's custom tabs and middleware chain.
 
 It mimics the way Resque keeps track of failures.
 
-TIP: Note that each failed job/retry will create a new failed job that will
-only be removed by you manually. This might result in a pretty big failures list.
+TIP: Note that each failed job/retry might create a new failed job that will
+only be removed by you manually. This might result in a pretty big failures list
+depending on how you configure failures tracking in your workers.
 
 ## Installation
 
@@ -22,7 +23,7 @@ Depends on Sidekiq >= 2.2.1
 
 ## Usage and Modes
 
-Simply having the gem in your Gemfile is enough to get you going. Your failed jobs will be visible via a Failures tab in the Web UI.
+Simply having the gem in your Gemfile is enough to get you started. Your failed jobs will be visible via a Failures tab in the Web UI.
 
 Sidekiq-failures offers three failures tracking options (per worker):
 
@@ -38,9 +39,7 @@ class MyWorker
 
   sidekiq_options :failures => true
 
-  def perform
-    # hard work
-  end
+  def perform; end
 end
 ```
 
@@ -56,9 +55,7 @@ class MyWorker
 
   sidekiq_options :failures => :exhausted
 
-  def perform
-    # hard work
-  end
+  def perform; end
 end
 ```
 
@@ -72,15 +69,13 @@ class MyWorker
 
   sidekiq_options :failures => false
 
-  def perform
-    # hard work
-  end
+  def perform; end
 end
 ```
 
 ## TODO
 
-* Trigger retry of specific failed jobs via Web UI.
+* Allow triggering retry of specific failed jobs via Web UI.
 
 ## Contributing
 
