@@ -62,6 +62,16 @@ module Sidekiq
         last_response.status.must_equal 200
         last_response.body.must_match /No failed jobs found/
       end
+
+      it 'can reset failures stats' do
+        last_response.body.must_match /HardWorker/
+
+        post '/failures/remove'
+        Sidekiq.redis do |redis|
+          assert_equal "0", redis.get("stat:failed")
+        end
+      end
+
     end
 
     def create_sample_failure
