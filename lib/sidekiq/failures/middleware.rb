@@ -1,11 +1,14 @@
 module Sidekiq
   module Failures
     class Middleware
-
+      attr_accessor :msg
 
       def call(worker, msg, queue)
+        self.msg = msg
         yield
       rescue => e
+        raise e if skip_failure?
+
         data = {
           :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
           :payload => msg,
@@ -15,27 +18,40 @@ module Sidekiq
           :worker => msg['class'],
           :queue => queue
         }
-      
-        unless Sidekiq::Failures.record_after_max_retries && retries_pending?(msg)
-          Sidekiq.redis { |conn| conn.lpush(:failed, Sidekiq.dump_json(data)) }
-        end
 
-        raise
+        Sidekiq.redis { |conn| conn.lpush(:failed, Sidekiq.dump_json(data)) }
+
+        raise e
       end
 
-      private 
+      private
 
-      def retries_pending? msg
-        retry_count(msg) < retry_attempts(msg)
+      def skip_failure?
+        msg['failures'] == false || not_exhausted?
       end
 
-      def retry_count msg
+      def not_exhausted?
+        msg['failures'] == 'exhausted' && !last_try?
+      end
+
+      def last_try?
+        retry_count == max_retries - 1
+      end
+
+      def retry_count
         msg['retry_count'] || 0
       end
 
-      def retry_attempts msg
-        Sidekiq::Middleware::Server::RetryJobs.new.retry_attempts_from(msg['retry'], 
-          Sidekiq::Middleware::Server::RetryJobs::DEFAULT_MAX_RETRY_ATTEMPTS)
+      def max_retries
+        retry_middleware.retry_attempts_from(msg['retry'], default_max_retries)
+      end
+
+      def retry_middleware
+        @retry_middleware ||= Sidekiq::Middleware::Server::RetryJobs.new
+      end
+
+      def default_max_retries
+        Sidekiq::Middleware::Server::RetryJobs::DEFAULT_MAX_RETRY_ATTEMPTS
       end
     end
   end

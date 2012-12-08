@@ -5,9 +5,6 @@ require "sidekiq/failures/web_extension"
 
 module Sidekiq
   module Failures
-    class << self
-      attr_accessor :record_after_max_retries
-    end
   end
 end
 

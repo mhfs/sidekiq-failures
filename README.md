@@ -20,17 +20,68 @@ gem 'sidekiq-failures'
 
 Depends on Sidekiq >= 2.2.1
 
-## Usage
+## Usage and Modes
 
-Simply having the gem in your Gemfile should be enough.
+Simply having the gem in your Gemfile is enough to get you going. Your failed jobs will be visible via a Failures tab in the Web UI.
 
-Your failed jobs will be visible via a Failures tab in the Web UI.
+Sidekiq-failures offers three failures tracking options (per worker):
+
+### all (default)
+
+Tracks failures everytime a background job fails. This mean a job with 25 retries enabled might generate up to 25 failure entries. If the worker has retry disabled only one failure will be tracked.
+
+This is the default behavior but can be made explicit with:
+
+```ruby
+class MyWorker
+  include Sidekiq::Worker
+
+  sidekiq_options :failures => true
+
+  def perform
+    # hard work
+  end
+end
+```
+
+### exhausted
+
+Only track failures if the job exhausts all its retries (or doesn't have retries enabled).
+
+You can set this mode as follows:
+
+```ruby
+class MyWorker
+  include Sidekiq::Worker
+
+  sidekiq_options :failures => :exhausted
+
+  def perform
+    # hard work
+  end
+end
+```
+
+### off
+
+You can also completely turn off failures tracking for a given worker as follows:
+
+```ruby
+class MyWorker
+  include Sidekiq::Worker
+
+  sidekiq_options :failures => false
+
+  def perform
+    # hard work
+  end
+end
+```
 
 ## TODO and Limitations
 
 * Skip failures of specific workers (or the opposite).
 * Trigger retry of specific failed jobs via Web UI.
-* Deal with retries. Maybe just track a failure when there's no attempt left.
 
 ## Contributing
 

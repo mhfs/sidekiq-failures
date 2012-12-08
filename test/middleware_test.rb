@@ -16,7 +16,6 @@ module Sidekiq
 
       class MockWorker
         include Sidekiq::Worker
-        sidekiq_options :retry => false
 
         def perform(args)
           $invokes += 1
@@ -24,7 +23,7 @@ module Sidekiq
         end
       end
 
-      it 'record failures' do
+      it 'records all failures by default' do
         msg = Sidekiq.dump_json({ 'class' => MockWorker.to_s, 'args' => ['myarg'] })
 
         Sidekiq.redis { |conn| assert_equal 0, conn.llen('failed') || 0 }
@@ -38,59 +37,61 @@ module Sidekiq
         assert_equal 1, $invokes
       end
 
-      describe 'record failures on max retries' do
-        before do
-          Sidekiq::Failures.record_after_max_retries = true
+      it 'records all failures if explicitly told to' do
+        msg = Sidekiq.dump_json({ 'class' => MockWorker.to_s, 'args' => ['myarg'], 'failures' => true })
+
+        Sidekiq.redis { |conn| assert_equal 0, conn.llen('failed') || 0 }
+
+        assert_raises TestException do
+          @processor.process(msg, 'default')
         end
 
-        after do
-          Sidekiq::Failures.record_after_max_retries = nil
-        end
+        Sidekiq.redis { |conn| assert_equal 1, conn.llen('failed') || 0 }
 
-        def assert_failure_count count
-          Sidekiq.redis { |conn| assert_equal count, conn.llen('failed') || 0 }
-        end
-
-        def run_worker retry_count = nil
-          assert_failure_count 0
-          msg = Sidekiq.dump_json({ 'class' => MockWorker.to_s, 'retry_count' => retry_count, 'args' => ['myarg'] })
-          assert_raises TestException do
-            @processor.process(msg, 'default')
-          end
-        end
-
-        describe '1st failure' do
-
-          it 'does not fail the message' do
-            run_worker 
-            assert_failure_count 0
-            assert_equal 1, $invokes
-          end
-
-        end
-
-        describe '24th failure' do
-
-          it 'does not fail the message' do
-            run_worker 24
-            assert_failure_count 0
-            assert_equal 1, $invokes
-          end
-
-        end
-
-        describe '25th failure' do
-
-          it 'fails the message' do
-            run_worker 25
-            assert_failure_count 1
-            assert_equal 1, $invokes
-          end
-
-        end
-
+        assert_equal 1, $invokes
       end
 
+      it "doesn't record failure if failures disabled" do
+        msg = Sidekiq.dump_json({ 'class' => MockWorker.to_s, 'args' => ['myarg'], 'failures' => false })
+
+        Sidekiq.redis { |conn| assert_equal 0, conn.llen('failed') || 0 }
+
+        assert_raises TestException do
+          @processor.process(msg, 'default')
+        end
+
+        Sidekiq.redis { |conn| assert_equal 0, conn.llen('failed') || 0 }
+
+        assert_equal 1, $invokes
+      end
+
+      it "doesn't record failure if going to be retired again and configured to track exhaustion" do
+        msg = Sidekiq.dump_json({ 'class' => MockWorker.to_s, 'args' => ['myarg'], 'failures' => 'exhausted' })
+
+        Sidekiq.redis { |conn| assert_equal 0, conn.llen('failed') || 0 }
+
+        assert_raises TestException do
+          @processor.process(msg, 'default')
+        end
+
+        Sidekiq.redis { |conn| assert_equal 0, conn.llen('failed') || 0 }
+
+        assert_equal 1, $invokes
+      end
+
+      it "records failure if failing last retry and configured to track exhaustion" do
+        msg = Sidekiq.dump_json({ 'class' => MockWorker.to_s, 'args' => ['myarg'], 'retry_count' => 24, 'failures' => 'exhausted' })
+
+        Sidekiq.redis { |conn| assert_equal 0, conn.llen('failed') || 0 }
+
+        assert_raises TestException do
+          @processor.process(msg, 'default')
+        end
+
+        Sidekiq.redis { |conn| assert_equal 1, conn.llen('failed') || 0 }
+
+        assert_equal 1, $invokes
+      end
     end
   end
 end
