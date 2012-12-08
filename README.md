@@ -78,9 +78,8 @@ class MyWorker
 end
 ```
 
-## TODO and Limitations
+## TODO
 
-* Skip failures of specific workers (or the opposite).
 * Trigger retry of specific failed jobs via Web UI.
 
 ## Contributing

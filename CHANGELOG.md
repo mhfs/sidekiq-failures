@@ -1,4 +1,8 @@
 ## Unreleased
+  * Allow per worker configuration of failure tracking mode. Thanks to
+    @kbaum for most of the work.
+  * Prevent sidekiq-failures from loading up sidekiq/processor (and thus
+    Celluloid actors) except for inside a Sidekiq server context (@cheald)
 
 ## 0.0.3
 
