@@ -10,6 +10,7 @@ module Sidekiq
         Sidekiq.server_middleware {|chain| chain.add Sidekiq::Failures::Middleware }
         Sidekiq.redis = REDIS
         Sidekiq.redis { |c| c.flushdb }
+        Sidekiq.instance_eval { @failures_default_mode = nil }
       end
 
       TestException = Class.new(StandardError)
@@ -21,6 +22,16 @@ module Sidekiq
           $invokes += 1
           raise TestException.new("failed!")
         end
+      end
+
+      it 'raises an error when failures_default_mode is configured incorrectly' do
+        assert_raises ArgumentError do
+          Sidekiq.failures_default_mode = 'exhaustion'
+        end
+      end
+
+      it 'defaults failures_default_mode to all' do
+        assert_equal 'all', Sidekiq.failures_default_mode
       end
 
       it 'records all failures by default' do
@@ -62,6 +73,22 @@ module Sidekiq
         assert_equal 1, $invokes
       end
 
+      it "doesn't record failure if going to be retired again and configured to track exhaustion by default" do
+        Sidekiq.failures_default_mode = :exhausted
+
+        msg = create_message('class' => MockWorker.to_s, 'args' => ['myarg'] )
+
+        assert_equal 0, failures_count
+
+        assert_raises TestException do
+          @processor.process(msg, 'default')
+        end
+
+        assert_equal 0, failures_count
+        assert_equal 1, $invokes
+      end
+
+
       it "doesn't record failure if going to be retired again and configured to track exhaustion" do
         msg = create_message('class' => MockWorker.to_s, 'args' => ['myarg'], 'failures' => 'exhausted')
 
@@ -87,6 +114,23 @@ module Sidekiq
         assert_equal 1, failures_count
         assert_equal 1, $invokes
       end
+
+      it "records failure if failing last retry and configured to track exhaustion by default" do
+        Sidekiq.failures_default_mode = 'exhausted'
+
+        msg = create_message('class' => MockWorker.to_s, 'args' => ['myarg'], 'retry_count' => 24)
+
+        assert_equal 0, failures_count
+
+        assert_raises TestException do
+          @processor.process(msg, 'default')
+        end
+
+        assert_equal 1, failures_count
+        assert_equal 1, $invokes
+      end
+
+
 
       def failures_count
         Sidekiq.redis { |conn|conn.llen('failed') } || 0

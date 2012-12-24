@@ -31,7 +31,15 @@ module Sidekiq
       end
 
       def not_exhausted?
-        msg['failures'] == 'exhausted' && !last_try?
+        exhausted_mode? && !last_try?
+      end
+
+      def exhausted_mode?
+        if msg['failures']
+          msg['failures'] == 'exhausted'   
+        else
+          Sidekiq.failures_default_mode.to_s == 'exhausted'
+        end
       end
 
       def last_try?
