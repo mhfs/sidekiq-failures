@@ -1,10 +1,31 @@
 require "sidekiq/web"
-require "sidekiq/processor"
 require "sidekiq/failures/version"
 require "sidekiq/failures/middleware"
 require "sidekiq/failures/web_extension"
 
 module Sidekiq
+
+  SIDEKIQ_FAILURES_MODES = [:all, :exhausted, :off].freeze
+
+  # Sets the default failure tracking mode.
+  #
+  # The value provided here will be the default behavior but can be overwritten
+  # per worker by using `sidekiq_options :failures => :mode`
+  #
+  # Defaults to :all
+  def self.failures_default_mode=(mode)
+    unless SIDEKIQ_FAILURES_MODES.include?(mode.to_sym)
+      raise ArgumentError, "Sidekiq#failures_default_mode valid options: #{SIDEKIQ_FAILURES_MODES}"
+    end
+
+    @failures_default_mode = mode.to_sym
+  end
+
+  # Fetches the default failure tracking mode.
+  def self.failures_default_mode
+    @failures_default_mode || :all
+  end
+
   module Failures
   end
 end
@@ -18,6 +39,8 @@ else
   Sidekiq::Web.tabs["Failures"] = "failures"
 end
 
-Sidekiq.server_middleware do |chain|
-  chain.add Sidekiq::Failures::Middleware
+Sidekiq.configure_server do |config|
+  config.server_middleware do |chain|
+    chain.add Sidekiq::Failures::Middleware
+  end
 end
