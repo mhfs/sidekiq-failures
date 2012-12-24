@@ -83,7 +83,7 @@ Sidekiq.configure_server do |config|
 end
 ```
 
-The valid modes are `:all`, `:exhausted`, `:off`, `true` or `false`.
+The valid modes are `:all`, `:exhausted` or `:off`.
 
 ## TODO
 
