@@ -37,7 +37,7 @@ This is the default behavior but can be made explicit with:
 class MyWorker
   include Sidekiq::Worker
 
-  sidekiq_options :failures => true
+  sidekiq_options :failures => true # or :all
 
   def perform; end
 end
@@ -67,11 +67,23 @@ You can also completely turn off failures tracking for a given worker as follows
 class MyWorker
   include Sidekiq::Worker
 
-  sidekiq_options :failures => false
+  sidekiq_options :failures => false # or :off
 
   def perform; end
 end
 ```
+
+### Change the default mode
+
+You can also change the default of all your workers at once by setting the following server config:
+
+```ruby
+Sidekiq.configure_server do |config|
+  config.failures_default_mode = :off
+end
+```
+
+The valid modes are `:all`, `:exhausted`, `:off`, `true` or `false`.
 
 ## TODO
 

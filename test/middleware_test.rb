@@ -31,7 +31,7 @@ module Sidekiq
       end
 
       it 'defaults failures_default_mode to all' do
-        assert_equal 'all', Sidekiq.failures_default_mode
+        assert_equal :all, Sidekiq.failures_default_mode
       end
 
       it 'records all failures by default' do

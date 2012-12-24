@@ -27,18 +27,23 @@ module Sidekiq
       private
 
       def skip_failure?
-        msg['failures'] == false || not_exhausted?
+        failure_mode == :off || not_exhausted?
       end
 
       def not_exhausted?
-        exhausted_mode? && !last_try?
+        failure_mode == :exhausted && !last_try?
       end
 
-      def exhausted_mode?
-        if msg['failures']
-          msg['failures'] == 'exhausted'   
+      def failure_mode
+        case msg['failures'].to_s
+        when 'true', 'all'
+          :all
+        when 'false', 'off'
+          :off
+        when 'exhausted'
+          :exhausted
         else
-          Sidekiq.failures_default_mode.to_s == 'exhausted'
+          Sidekiq.failures_default_mode
         end
       end
 
