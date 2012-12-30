@@ -32,7 +32,7 @@ header.row
         input.btn.btn-danger.btn-small type="submit" name="delete" value="Clear All"
         label class="checkbox"
           input type="checkbox" name="counter" value="true"
-          = "clear counter"
+          = "reset failed counter"
     .span4
       == slim :_paging, :locals => { :url => "#{root_path}failures#@name" }
 - else

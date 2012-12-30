@@ -49,12 +49,11 @@ module Sidekiq
         last_response.body.must_match /failures\/remove/
         last_response.body.must_match /method=\"post/
         last_response.body.must_match /Clear All/
+        last_response.body.must_match /reset failed counter/
       end
 
       it 'can remove all failures without clearing counter' do
-        Sidekiq.redis do |c|
-          assert_equal c.get("stat:failed"), "1"
-        end
+        assert_equal failed_count, "1"
 
         last_response.body.must_match /HardWorker/
 
@@ -66,15 +65,11 @@ module Sidekiq
         last_response.status.must_equal 200
         last_response.body.must_match /No failed jobs found/
 
-        Sidekiq.redis do |c|
-          assert_equal c.get("stat:failed"), "1"
-        end
+        assert_equal failed_count, "1"
       end
 
       it 'can remove all failures and clear counter' do
-        Sidekiq.redis do |c|
-          assert_equal c.get("stat:failed"), "1"
-        end
+        assert_equal failed_count, "1"
 
         last_response.body.must_match /HardWorker/
 
@@ -86,9 +81,7 @@ module Sidekiq
         last_response.status.must_equal 200
         last_response.body.must_match /No failed jobs found/
 
-        Sidekiq.redis do |c|
-          assert_nil c.get("stat:failed")
-        end
+        assert_equal failed_count, "0"
       end
     end
 
@@ -106,9 +99,13 @@ module Sidekiq
       Sidekiq.redis do |c|
         c.multi do
           c.rpush("failed", Sidekiq.dump_json(data))
-          c.incrby("stat:failed", 1)
+          c.set("stat:failed", 1)
         end
       end
+    end
+
+    def failed_count
+      Sidekiq.redis { |c| c.get("stat:failed") }
     end
   end
 end

@@ -5,6 +5,7 @@
     Celluloid actors) except for inside a Sidekiq server context (@cheald)
   * Fix pagination bug
   * Add failures default mode option (@kbaum)
+  * Add checkbox option to reset failed counter (@krasnoukhov)
 
 ## 0.0.3
 
