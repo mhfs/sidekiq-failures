@@ -23,7 +23,7 @@ module Sidekiq
           Sidekiq.redis {|c|
             c.multi do
               c.del("failed")
-              c.del("stat:failed")
+              c.del("stat:failed") if params["counter"]
             end
           }
 

@@ -51,7 +51,7 @@ module Sidekiq
         last_response.body.must_match /Clear All/
       end
 
-      it 'can remove all failures' do
+      it 'can remove all failures without clearing counter' do
         Sidekiq.redis do |c|
           assert_equal c.get("stat:failed"), "1"
         end
@@ -59,6 +59,26 @@ module Sidekiq
         last_response.body.must_match /HardWorker/
 
         post '/failures/remove'
+        last_response.status.must_equal 302
+        last_response.location.must_match /failures$/
+
+        get '/failures'
+        last_response.status.must_equal 200
+        last_response.body.must_match /No failed jobs found/
+
+        Sidekiq.redis do |c|
+          assert_equal c.get("stat:failed"), "1"
+        end
+      end
+
+      it 'can remove all failures and clear counter' do
+        Sidekiq.redis do |c|
+          assert_equal c.get("stat:failed"), "1"
+        end
+
+        last_response.body.must_match /HardWorker/
+
+        post '/failures/remove', counter: "true"
         last_response.status.must_equal 302
         last_response.location.must_match /failures$/
 
