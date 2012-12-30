@@ -28,8 +28,11 @@ header.row
 
   div.row
     .span5
-      form.form-horizontal action="#{root_path}failures/remove" method="post" style="margin: 20px 0"
+      form.form-inline action="#{root_path}failures/remove" method="post" style="margin: 20px 0"
         input.btn.btn-danger.btn-small type="submit" name="delete" value="Clear All"
+        label class="checkbox"
+          input type="checkbox" name="counter" value="true"
+          = "clear counter"
     .span4
       == slim :_paging, :locals => { :url => "#{root_path}failures#@name" }
 - else
