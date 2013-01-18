@@ -17,6 +17,7 @@ require "rack/test"
 require "sidekiq"
 require "sidekiq-failures"
 require "sidekiq/processor"
+require "sidekiq/fetch"
 
 Celluloid.logger = nil
 Sidekiq.logger.level = Logger::ERROR
