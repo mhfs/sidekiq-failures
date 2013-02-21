@@ -3,20 +3,14 @@ module Sidekiq
     module WebExtension
 
       def self.registered(app)
-        app.helpers do
-          def find_template(view, *a, &b)
-            dir = File.expand_path("../views/", __FILE__)
-            super(dir, *a, &b)
-            super
-          end
-        end
-
         app.get "/failures" do
+          view_path = File.join(File.expand_path("..", __FILE__), "views")
+
           @count = (params[:count] || 25).to_i
           (@current_page, @total_size, @messages) = page("failed", params[:page], @count)
           @messages = @messages.map { |msg| Sidekiq.load_json(msg) }
 
-          slim :failures
+          render(:slim, File.read(File.join(view_path, "failures.slim")))
         end
 
         app.post "/failures/remove" do
