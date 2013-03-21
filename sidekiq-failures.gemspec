@@ -16,9 +16,6 @@ Gem::Specification.new do |gem|
   gem.version       = Sidekiq::Failures::VERSION
 
   gem.add_dependency "sidekiq", ">= 2.2.1"
-  gem.add_dependency "slim"
-  gem.add_dependency "sinatra"
-  gem.add_dependency "sprockets"
 
   gem.add_development_dependency "rake"
   gem.add_development_dependency "rack-test"
