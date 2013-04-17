@@ -16,7 +16,7 @@ module Sidekiq
           :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
           :payload => msg,
           :exception => e.class.to_s,
-          :error => e.to_s,
+          :error => e.message,
           :backtrace => e.backtrace,
           :worker => msg['class'],
           :processor => "#{hostname}:#{process_id}-#{Thread.current.object_id}:default",
