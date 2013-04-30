@@ -1,5 +1,16 @@
 module Sidekiq
   module Failures
+    module Config
+
+      def self.max_failures_count
+        self.class.instance_variable_get(:@max_failures_count)
+      end
+
+      def self.max_failures_count=(count)
+        self.class.instance_variable_set(:@max_failures_count, count)
+      end
+
+    end
     class Middleware
       include Sidekiq::Util
       attr_accessor :msg
@@ -23,7 +34,12 @@ module Sidekiq
           :queue => queue
         }
 
-        Sidekiq.redis { |conn| conn.lpush(:failed, Sidekiq.dump_json(data)) }
+        Sidekiq.redis do |conn|
+          conn.rpush(:failed, Sidekiq.dump_json(data))
+          unless Sidekiq::Failures::Config.max_failures_count.nil?
+            conn.lpop(:failed) if conn.llen(:failed) > Config.max_failures_count
+          end
+        end
 
         raise e
       end
