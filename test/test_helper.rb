@@ -16,6 +16,7 @@ require "rack/test"
 
 require "sidekiq"
 require "sidekiq-failures"
+require "sidekiq/cli"
 require "sidekiq/processor"
 require "sidekiq/fetch"
 
