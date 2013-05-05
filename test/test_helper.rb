@@ -22,6 +22,5 @@ require "sidekiq/fetch"
 
 Celluloid.logger = nil
 Sidekiq.logger.level = Logger::ERROR
-puts Sidekiq::Shutdown.inspect
 
 REDIS = Sidekiq::RedisConnection.create(:url => "redis://localhost/15", :namespace => 'sidekiq_failures_test')
