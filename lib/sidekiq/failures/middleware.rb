@@ -1,6 +1,7 @@
 module Sidekiq
   module Failures
     class Middleware
+      include Sidekiq::Util
       attr_accessor :msg
 
       def call(worker, msg, queue)
@@ -18,6 +19,7 @@ module Sidekiq
           :error => e.to_s,
           :backtrace => e.backtrace,
           :worker => msg['class'],
+          :processor => "#{hostname}:#{process_id}-#{Thread.current.object_id}:default",
           :queue => queue
         }
 
