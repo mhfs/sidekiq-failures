@@ -31,6 +31,24 @@ module Sidekiq
     @failures_default_mode || :all
   end
 
+  # Sets the maximum number of failures to track
+  #
+  # If the number of failures exceeds this number the list will be trimmed (oldest
+  # failures will be purged).
+  #
+  # Defaults to 1000
+  # Set to false to disable rotation
+  def self.failures_max_count=(value)
+    @failures_max_count = value
+  end
+
+  # Fetches the failures max count value
+  def self.failures_max_count
+    return 1000 if @failures_max_count.nil?
+
+    @failures_max_count
+  end
+
   module Failures
   end
 end
