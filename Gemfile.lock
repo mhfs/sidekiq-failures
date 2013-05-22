@@ -3,9 +3,6 @@ PATH
   specs:
     sidekiq-failures (0.1.0)
       sidekiq (>= 2.2.1)
-      sinatra
-      slim
-      sprockets
 
 GEM
   remote: https://rubygems.org/
@@ -54,3 +51,6 @@ DEPENDENCIES
   rack-test
   rake
   sidekiq-failures!
+  sinatra
+  slim
+  sprockets
