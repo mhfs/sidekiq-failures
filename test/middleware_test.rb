@@ -5,8 +5,8 @@ module Sidekiq
     describe "Middleware" do
       before do
         $invokes = 0
-        boss = MiniTest::Mock.new
-        @processor = ::Sidekiq::Processor.new(boss)
+        @boss = MiniTest::Mock.new
+        @processor = ::Sidekiq::Processor.new(@boss)
         Sidekiq.server_middleware {|chain| chain.add Sidekiq::Failures::Middleware }
         Sidekiq.redis = REDIS
         Sidekiq.redis { |c| c.flushdb }
@@ -14,12 +14,14 @@ module Sidekiq
       end
 
       TestException = Class.new(StandardError)
+      ShutdownException = Class.new(Sidekiq::Shutdown)
 
       class MockWorker
         include Sidekiq::Worker
 
         def perform(args)
           $invokes += 1
+          raise ShutdownException.new if args == "shutdown"
           raise TestException.new("failed!")
         end
       end
@@ -57,6 +59,21 @@ module Sidekiq
         end
 
         assert_equal 1, failures_count
+        assert_equal 1, $invokes
+      end
+
+      it "doesn't record internal shutdown failure" do
+        msg = create_work('class' => MockWorker.to_s, 'args' => ['shutdown'], 'failures' => true)
+
+        assert_equal 0, failures_count
+
+        actor = MiniTest::Mock.new
+        actor.expect(:processor_done, nil, [@processor])
+        @boss.expect(:async, actor, [])
+        @processor.process(msg)
+        @boss.verify
+
+        assert_equal 0, failures_count
         assert_equal 1, $invokes
       end
 
