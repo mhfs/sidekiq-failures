@@ -6,6 +6,8 @@ module Sidekiq
       def call(worker, msg, queue)
         self.msg = msg
         yield
+      rescue Sidekiq::Shutdown
+        raise
       rescue => e
         raise e if skip_failure?
 
