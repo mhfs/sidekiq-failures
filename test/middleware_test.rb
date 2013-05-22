@@ -147,6 +147,21 @@ module Sidekiq
         assert_equal 1, $invokes
       end
 
+      it "remove old failures when max_failure_count has been reached" do
+        Sidekiq.max_failures_count = 2
+
+        msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'])
+
+        assert_equal 0, failures_count
+        
+        3.times do
+          assert_raises TestException do
+            ::Sidekiq::Processor.new(MiniTest::Mock.new).process(msg)
+          end
+        end
+        assert_equal 2, failures_count
+      end
+
       def failures_count
         Sidekiq.redis { |conn|conn.llen('failed') } || 0
       end
