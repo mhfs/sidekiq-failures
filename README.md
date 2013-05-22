@@ -5,9 +5,7 @@ them. Makes use of Sidekiq's custom tabs and middleware chain.
 
 It mimics the way Resque keeps track of failures.
 
-TIP: Note that each failed job/retry might create a new failed job that will
-only be removed by you manually. This might result in a pretty big failures list
-depending on how you configure failures tracking in your workers.
+WARNING: by default sidekiq-failures will keep up to 1000 failures. See [Maximum Tracked Failures](https://github.com/mhfs/sidekiq-failures#maximum-tracked-failures) below.
 
 ## Installation
 
@@ -17,19 +15,47 @@ Add this line to your application's Gemfile:
 gem 'sidekiq-failures'
 ```
 
-## Dependencies
+## Usage
 
-Depends on Sidekiq >= 2.2.1
+Simply having the gem in your Gemfile is enough to get you started. Your failed
+jobs will be visible via a Failures tab in the Web UI.
 
-## Usage and Modes
+## Configuring
 
-Simply having the gem in your Gemfile is enough to get you started. Your failed jobs will be visible via a Failures tab in the Web UI.
+### Maximum Tracked Failures
+
+Since each failed job/retry creates a new failure entry that will only be removed 
+by you manually, your failures list might consume more resources than you have 
+available.
+
+To avoid this sidekiq-failures adopts a default of 1000 maximum tracked failures.
+
+To change the maximum amount:
+
+```ruby
+Sidekiq.configure_server do |config|
+  config.failures_max_count = 5000
+end
+```
+
+To disable the limit entirely:
+
+```ruby
+Sidekiq.configure_server do |config|
+  config.failures_max_count = false
+end
+```
+
+### Failures Tracking Mode
 
 Sidekiq-failures offers three failures tracking options (per worker):
 
-### all (default)
 
-Tracks failures everytime a background job fails. This mean a job with 25 retries enabled might generate up to 25 failure entries. If the worker has retry disabled only one failure will be tracked.
+#### :all (default)
+
+Tracks failures every time a background job fails. This mean a job with 25 retries
+enabled might generate up to 25 failure entries. If the worker has retry disabled
+only one failure will be tracked.
 
 This is the default behavior but can be made explicit with:
 
@@ -43,9 +69,10 @@ class MyWorker
 end
 ```
 
-### exhausted
+#### :exhausted
 
-Only track failures if the job exhausts all its retries (or doesn't have retries enabled).
+Only track failures if the job exhausts all its retries (or doesn't have retries
+enabled).
 
 You can set this mode as follows:
 
@@ -59,7 +86,7 @@ class MyWorker
 end
 ```
 
-### off
+#### :off
 
 You can also completely turn off failures tracking for a given worker as follows:
 
@@ -73,9 +100,10 @@ class MyWorker
 end
 ```
 
-### Change the default mode
+#### Change the default mode
 
-You can also change the default of all your workers at once by setting the following server config:
+You can also change the default of all your workers at once by setting the following
+server config:
 
 ```ruby
 Sidekiq.configure_server do |config|
@@ -84,6 +112,10 @@ end
 ```
 
 The valid modes are `:all`, `:exhausted` or `:off`.
+
+## Dependencies
+
+Depends on Sidekiq >= 2.2.1
 
 ## TODO
 
