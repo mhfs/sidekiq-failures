@@ -14,11 +14,13 @@ end
 
 require "rack/test"
 
+require "celluloid"
 require "sidekiq"
 require "sidekiq-failures"
 require "sidekiq/cli"
 require "sidekiq/processor"
 require "sidekiq/fetch"
+require "sidekiq/cli"
 
 Celluloid.logger = nil
 Sidekiq.logger.level = Logger::ERROR
