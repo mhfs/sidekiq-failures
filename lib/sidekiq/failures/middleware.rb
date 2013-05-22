@@ -29,7 +29,7 @@ module Sidekiq
           :error => e.message,
           :backtrace => e.backtrace,
           :worker => msg['class'],
-          :processor => "#{hostname}:#{process_id}-#{Thread.current.object_id}:default",
+          :processor => "#{hostname}:#{process_id}-#{Thread.current.object_id}",
           :queue => queue
         }
 
