@@ -1,4 +1,6 @@
 ## Unreleased
+
+## 0.2.0
   * Added processor identity to failure data (@krasnoukhov)
   * Handle Sidekiq::Shutdown exceptions (@krasnoukhov)
   * Add failures maximum count option (@mathieulaporte)
