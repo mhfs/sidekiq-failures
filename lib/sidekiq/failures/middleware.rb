@@ -58,7 +58,7 @@ module Sidekiq
       end
 
       def last_try?
-        retry_count == max_retries - 1
+        ! msg['retry'] || retry_count == max_retries - 1
       end
 
       def retry_count
