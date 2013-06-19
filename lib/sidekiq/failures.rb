@@ -61,11 +61,9 @@ end
 
 if defined?(Sidekiq::Web)
   Sidekiq::Web.register Sidekiq::Failures::WebExtension
+end
 
-  if Sidekiq::Web.tabs.is_a?(Array)
-    # For sidekiq < 2.5
-    Sidekiq::Web.tabs << "failures"
-  else
-    Sidekiq::Web.tabs["Failures"] = "failures"
-  end
+if defined?(I18n)
+  dir = File.expand_path(File.dirname(__FILE__) + "/../../")
+  I18n.load_path += Dir[File.join(dir, 'locales', '*.yml').to_s]
 end
