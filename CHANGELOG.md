@@ -1,5 +1,8 @@
 ## Unreleased
 
+## 0.2.1
+  * Fix exhausted mode when retry is disabled (@wr0ngway)
+
 ## 0.2.0
   * Added processor identity to failure data (@krasnoukhov)
   * Handle Sidekiq::Shutdown exceptions (@krasnoukhov)
