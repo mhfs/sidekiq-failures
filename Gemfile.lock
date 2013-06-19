@@ -50,6 +50,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  i18n
   rack-test
   rake
   sidekiq-failures!

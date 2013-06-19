@@ -1,0 +1,125 @@
+1.9.3-p392 :001 > require "test_helper"
+ => true 
+1.9.3-p392 :002 > require "sidekiq/web"
+ => false 
+1.9.3-p392 :003 > 
+1.9.3-p392 :004 >   module Sidekiq
+1.9.3-p392 :005?>     describe "WebExtension" do
+1.9.3-p392 :006 >           include Rack::Test::Methods
+1.9.3-p392 :007?>     
+1.9.3-p392 :008 >           def app
+1.9.3-p392 :009?>             Sidekiq::Web
+1.9.3-p392 :010?>           end
+1.9.3-p392 :011?>     
+1.9.3-p392 :012 >           before do
+1.9.3-p392 :013 >               Sidekiq.redis = REDIS
+1.9.3-p392 :014?>             Sidekiq.redis {|c| c.flushdb }
+1.9.3-p392 :015?>           end
+1.9.3-p392 :016?>     
+1.9.3-p392 :017 >           it 'can display home with failures tab' do
+1.9.3-p392 :018 >               get '/'
+1.9.3-p392 :019?>       
+1.9.3-p392 :020 >               last_response.status.must_equal 200
+1.9.3-p392 :021?>             last_response.body.must_match /Sidekiq/
+1.9.3-p392 :022?>             last_response.body.must_match /Failures/
+1.9.3-p392 :023?>           end
+1.9.3-p392 :024?>     
+1.9.3-p392 :025 >           it 'can display failures page without any failures' do
+1.9.3-p392 :026 >               get '/failures'
+1.9.3-p392 :027?>             last_response.status.must_equal 200
+1.9.3-p392 :028?>             last_response.body.must_match /Failed Jobs/
+1.9.3-p392 :029?>             last_response.body.must_match /No failed jobs found/
+1.9.3-p392 :030?>           end
+1.9.3-p392 :031?>     
+1.9.3-p392 :032 >           describe 'when there are failures' do
+1.9.3-p392 :033 >               before do
+1.9.3-p392 :034 >                   create_sample_failure
+1.9.3-p392 :035?>                 get '/failures'
+1.9.3-p392 :036?>               end
+1.9.3-p392 :037?>       
+1.9.3-p392 :038 >               it 'should be successful' do
+1.9.3-p392 :039 >                   last_response.status.must_equal 200
+1.9.3-p392 :040?>               end
+1.9.3-p392 :041?>       
+1.9.3-p392 :042 >               it 'can display failures page with failures listed' do
+1.9.3-p392 :043 >                   last_response.body.must_match /Failed Jobs/
+1.9.3-p392 :044?>                 last_response.body.must_match /HardWorker/
+1.9.3-p392 :045?>                 last_response.body.must_match /ArgumentError/
+1.9.3-p392 :046?>                 last_response.body.wont_match /No failed jobs found/
+1.9.3-p392 :047?>               end
+1.9.3-p392 :048?>       
+1.9.3-p392 :049 >               it 'has the clear all form and action' do
+1.9.3-p392 :050 >                   last_response.body.must_match /failures\/remove/
+1.9.3-p392 :051?>                 last_response.body.must_match /method=\"post/
+1.9.3-p392 :052?>                 last_response.body.must_match /Clear All/
+1.9.3-p392 :053?>                 last_response.body.must_match /reset failed counter/
+1.9.3-p392 :054?>               end
+1.9.3-p392 :055?>       
+1.9.3-p392 :056 >               it 'can remove all failures without clearing counter' do
+1.9.3-p392 :057 >                   assert_equal failed_count, "1"
+1.9.3-p392 :058?>         
+1.9.3-p392 :059 >                   last_response.body.must_match /HardWorker/
+1.9.3-p392 :060?>         
+1.9.3-p392 :061 >                   post '/failures/remove'
+1.9.3-p392 :062?>                 last_response.status.must_equal 302
+1.9.3-p392 :063?>                 last_response.location.must_match /failures$/
+1.9.3-p392 :064?>         
+1.9.3-p392 :065 >                   get '/failures'
+1.9.3-p392 :066?>                 last_response.status.must_equal 200
+1.9.3-p392 :067?>                 last_response.body.must_match /No failed jobs found/
+1.9.3-p392 :068?>         
+1.9.3-p392 :069 >                   assert_equal failed_count, "1"
+1.9.3-p392 :070?>               end
+1.9.3-p392 :071?>       
+1.9.3-p392 :072 >               it 'can remove all failures and clear counter' do
+1.9.3-p392 :073 >                   assert_equal failed_count, "1"
+1.9.3-p392 :074?>         
+1.9.3-p392 :075 >                   last_response.body.must_match /HardWorker/
+1.9.3-p392 :076?>         
+1.9.3-p392 :077 >                   post '/failures/remove', counter: "true"
+1.9.3-p392 :078?>                 last_response.status.must_equal 302
+1.9.3-p392 :079?>                 last_response.location.must_match /failures$/
+1.9.3-p392 :080?>         
+1.9.3-p392 :081 >                   get '/failures'
+1.9.3-p392 :082?>                 last_response.status.must_equal 200
+1.9.3-p392 :083?>                 last_response.body.must_match /No failed jobs found/
+1.9.3-p392 :084?>         
+1.9.3-p392 :085 >                   assert_equal failed_count, "0"
+1.9.3-p392 :086?>               end
+1.9.3-p392 :087?>           end
+1.9.3-p392 :088?>     
+1.9.3-p392 :089 >           def create_sample_failure
+1.9.3-p392 :090?>             data = {
+1.9.3-p392 :091 >                   :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
+1.9.3-p392 :092 >                   :payload => { :args => ["bob", 5] },
+1.9.3-p392 :093 >                   :exception => "ArgumentError",
+1.9.3-p392 :094 >                   :error => "Some new message",
+1.9.3-p392 :095 >                   :backtrace => ["path/file1.rb", "path/file2.rb"],
+1.9.3-p392 :096 >                   :worker => 'HardWorker',
+1.9.3-p392 :097 >                   :queue => 'default'
+1.9.3-p392 :098?>               }
+1.9.3-p392 :099?>       
+1.9.3-p392 :100 >               Sidekiq.redis do |c|
+1.9.3-p392 :101 >                   c.multi do
+1.9.3-p392 :102 >                       c.rpush("failed", Sidekiq.dump_json(data))
+1.9.3-p392 :103?>                     c.set("stat:failed", 1)
+1.9.3-p392 :104?>                   end
+1.9.3-p392 :105?>               end
+1.9.3-p392 :106?>           end
+1.9.3-p392 :107?>     
+1.9.3-p392 :108 >           def failed_count
+1.9.3-p392 :109?>             Sidekiq.redis { |c| c.get("stat:failed") }
+1.9.3-p392 :110?>           end
+1.9.3-p392 :111?>       end
+1.9.3-p392 :112?>   end
+ => WebExtension 
+1.9.3-p392 :113 > 
+Run options: --seed 82
+
+# Running tests:
+
+.......
+
+Finished tests in 0.800655s, 8.7428 tests/s, 58.7019 assertions/s.
+
+7 tests, 47 assertions, 0 failures, 0 errors, 0 skips

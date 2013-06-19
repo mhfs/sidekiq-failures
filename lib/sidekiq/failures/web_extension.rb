@@ -4,16 +4,15 @@ module Sidekiq
 
       def self.registered(app)
 
-        if defined?(I18n)
-          app.before do
-            I18n.locale = request.env["HTTP_ACCEPT_LANGUAGE"][0,2] || 'en'
+        app.before do
+          locale = request.env["HTTP_ACCEPT_LANGUAGE"][0,2] if request.env["HTTP_ACCEPT_LANGUAGE"]
+          I18n.locale = locale || 'en'
 
-            if app.tabs.is_a?(Array)
-              # For sidekiq < 2.5
-              app.tabs << "failures"
-            else
-              app.tabs[I18n.t('sidekiq.extension.failures.tab')] = "failures"
-            end
+          if app.tabs.is_a?(Array)
+            # For sidekiq < 2.5
+            app.tabs << "failures"
+          else
+            app.tabs[I18n.t('sidekiq.extension.failures.tab')] = "failures"
           end
         end
 
