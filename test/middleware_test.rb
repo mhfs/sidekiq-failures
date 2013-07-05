@@ -136,17 +136,17 @@ module Sidekiq
 
       it "records failure if retry disabled and configured to track exhaustion" do
          msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'retry' => false, 'failures' => 'exhausted')
- 
+
          assert_equal 0, failures_count
- 
+
          assert_raises TestException do
            @processor.process(msg)
          end
- 
+
          assert_equal 1, failures_count
          assert_equal 1, $invokes
        end
- 
+
       it "records failure if retry disabled and configured to track exhaustion by default" do
         Sidekiq.failures_default_mode = 'exhausted'
 
