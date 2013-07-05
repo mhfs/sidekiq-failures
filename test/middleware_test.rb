@@ -213,7 +213,7 @@ module Sidekiq
       end
 
       def failures_count
-        Sidekiq.redis { |conn|conn.llen('failed') } || 0
+        Sidekiq.redis { |conn| conn.zcard('failure') }
       end
 
       def create_work(msg)

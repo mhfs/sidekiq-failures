@@ -24,10 +24,11 @@ module Sidekiq
           :queue => queue
         }
 
+        payload = Sidekiq.dump_json(msg)
         Sidekiq.redis do |conn|
-          conn.rpush(:failed, Sidekiq.dump_json(data))
+          conn.zadd('failure', Time.now.utc.to_f, payload)
           unless Sidekiq.failures_max_count == false
-            conn.ltrim(:failed, (-Sidekiq.failures_max_count), -1)
+            conn.zremrangebyrank('failure', 0, -(Sidekiq.failures_max_count + 1))
           end
         end
 

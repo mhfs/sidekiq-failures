@@ -99,7 +99,7 @@ module Sidekiq
 
       Sidekiq.redis do |c|
         c.multi do
-          c.rpush("failed", Sidekiq.dump_json(data))
+          c.zadd("failure", failure_score, Sidekiq.dump_json(data))
           c.set("stat:failed", 1)
         end
       end
