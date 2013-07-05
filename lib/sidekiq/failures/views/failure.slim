@@ -1,0 +1,47 @@
+header
+  h3 = t('Job')
+
+table class="failure table table-bordered table-striped"
+  tbody
+    tr
+      th = t('Queue')
+      td
+        a href="#{root_path}queues/#{@failure['queue']}" #{@failure['queue']}
+    tr
+      th = t('Class')
+      td
+        code= @failure['class']
+    tr
+      th = t('Arguments')
+      td
+        code= display_args(@failure['args'], 1000)
+    tr
+      th JID
+      td
+        code= @failure.jid
+    tr
+      th = t('Enqueued')
+      td== relative_time(@failure.enqueued_at)
+    tr
+      th = t('OriginallyFailed')
+      td== relative_time(@failure['failed_at'].is_a?(Numeric) ? Time.at(@failure['failed_at']) : Time.parse(@failure['failed_at']))
+
+h3 = t('Error')
+table class="error table table-bordered table-striped"
+  tbody
+    tr
+      th = t('ErrorClass')
+      td
+        code= @failure['error_class']
+    tr
+      th = t('ErrorMessage')
+      td= @failure['error_message']
+    - if !@failure['error_backtrace'].nil?
+      tr
+        th = t('ErrorBacktrace')
+        td
+          code== @failure['error_backtrace'].join("<br/>")
+form.form-horizontal action="#{root_path}failures/#{job_params(@failure, @failure.score)}" method="post"
+  a.btn href="#{root_path}failures" = t('GoBack')
+  input.btn.btn-primary type="submit" name="retry" value="#{t('RetryNow')}"
+  input.btn.btn-danger type="submit" name="delete" value="#{t('Delete')}"

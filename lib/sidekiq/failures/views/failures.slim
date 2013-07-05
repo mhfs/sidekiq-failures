@@ -1,41 +1,38 @@
 header.row
   .span5
-    h3 Failed Jobs
+    h3 = t('Failures')
   .span4
-    - if @messages.size > 0
-      == slim :_paging, :locals => { :url => "#{root_path}failures#@name" }
+    - if @failures.size > 0
+      == slim :_paging, :locals => { :url => "#{root_path}failures" }
 
-- if @messages.size > 0
-  table class="table table-striped table-bordered table-white" style="width: 100%; margin: 0; table-layout:fixed;"
-    thead
-      th style="width: 25%" Worker, Args
-      th style="width: 10%" Queue
-      th style="width: 15%" Failed At
-      th style="width: 50%" Exception
-    - @messages.each do |msg|
+- if @failures.size > 0
+
+  form action="#{root_path}failures" method="post"
+    table class="table table-striped table-bordered table-white"
       tr
-        td style="overflow: hidden; text-overflow: ellipsis;"
-          = msg['worker']
-          br
-          = msg['payload']['args'].inspect[0..100]
-        td= msg['queue']
-        td
-          time datetime="#{Time.parse(msg['failed_at']).getutc.iso8601}"
-            = msg['failed_at']
-        td style="overflow: auto; padding: 10px;"
-          a.backtrace href="#" onclick="$(this).next().toggle(); return false"  = "#{msg['exception']}: #{msg['error']}"
-          pre style="display: none; background: none; border: 0; width: 100%; max-height: 30em; font-size: 0.8em; white-space: nowrap;" == msg['backtrace'].join("<br />")
-          p
-            span Processor: #{msg['processor']}
+        th width="20px"
+          input type="checkbox" class="check_all"
+        th = t('Failed')
+        th = t('Queue')
+        th = t('Worker')
+        th = t('Arguments')
+      - @failures.each do |msg, score|
+        tr
+          td
+            input type='checkbox' name='key[]' value='#{job_params(msg, score)}'
+          td
+            a href="#{root_path}failures/#{job_params(msg, score)}"== relative_time(Time.at(score))
+          td
+            a href="#{root_path}queues/#{msg['queue']}" #{msg['queue']}
+          td= msg['class']
+          td= display_args(msg['args'])
+    input.btn.btn-primary.btn-small.pull-left type="submit" name="retry" value="#{t('RetryNow')}"
+    input.btn.btn-danger.btn-small.pull-left type="submit" name="delete" value="#{t('Delete')}"
 
-  div.row
-    .span5
-      form.form-inline action="#{root_path}failures/remove" method="post" style="margin: 20px 0"
-        input.btn.btn-danger.btn-small type="submit" name="delete" value="Clear All"
-        label class="checkbox"
-          input type="checkbox" name="counter" value="true"
-          = "reset failed counter"
-    .span4
-      == slim :_paging, :locals => { :url => "#{root_path}failures#@name" }
+  form action="#{root_path}failures/all/delete" method="post"
+    input.btn.btn-danger.btn-small.pull-right type="submit" name="delete" value="#{t('DeleteAll')}" data-confirm="#{t('AreYouSure')}"
+  form action="#{root_path}failures/all/retry" method="post"
+    input.btn.btn-danger.btn-small.pull-right type="submit" name="retry" value="#{t('RetryAll')}" data-confirm="#{t('AreYouSure')}"
+
 - else
-  .alert.alert-success  No failed jobs found.
+  .alert.alert-success = t('NoFailuresFound')
