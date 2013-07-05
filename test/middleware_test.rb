@@ -5,7 +5,10 @@ module Sidekiq
     describe "Middleware" do
       before do
         $invokes = 0
+        actor = Minitest::Mock.new
+        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
         @boss = MiniTest::Mock.new
+        @boss.expect(:async, actor, [])
         @processor = ::Sidekiq::Processor.new(@boss)
         Sidekiq.server_middleware do |chain|
           chain.insert_before Sidekiq::Middleware::Server::RetryJobs, Sidekiq::Failures::Middleware
@@ -70,10 +73,13 @@ module Sidekiq
         assert_equal 0, failures_count
 
         actor = MiniTest::Mock.new
-        actor.expect(:processor_done, nil, [@processor])
-        @boss.expect(:async, actor, [])
-        @processor.process(msg)
-        @boss.verify
+        boss = MiniTest::Mock.new
+        2.times { boss.expect(:async, actor, []) }
+        processor = ::Sidekiq::Processor.new(boss)
+        actor.expect(:processor_done, nil, [processor])
+        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        processor.process(msg)
+        boss.verify
 
         assert_equal 0, failures_count
         assert_equal 1, $invokes
@@ -185,9 +191,15 @@ module Sidekiq
 
         assert_equal 0, failures_count
 
-        3.times do
+        actor = MiniTest::Mock.new
+        boss = MiniTest::Mock.new
+
+        3.times do |t|
+          boss.expect(:async, actor, [])
+          actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+
           assert_raises TestException do
-            ::Sidekiq::Processor.new(MiniTest::Mock.new).process(msg)
+            ::Sidekiq::Processor.new(boss).process(msg)
           end
         end
 
