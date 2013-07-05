@@ -38,12 +38,16 @@ module Sidekiq
 
       private
 
-      def skip_failure?
-        failure_mode == :off || not_exhausted?
+      def failure_mode_off?
+        failure_mode == :off
       end
 
-      def not_exhausted?
-        failure_mode == :exhausted && !last_try?
+      def failure_mode_exhausted?
+        failure_mode == :exhausted
+      end
+
+      def skip_failure?
+        failure_mode_off? || failure_mode_exhausted? && !exhausted?
       end
 
       def failure_mode
@@ -59,8 +63,12 @@ module Sidekiq
         end
       end
 
-      def last_try?
-        ! msg['retry'] || retry_count == max_retries - 1
+      def exhausted?
+        !retriable? || retry_count >= max_retries
+      end
+
+      def retriable?
+        msg['retry']
       end
 
       def retry_count
