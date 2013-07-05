@@ -13,21 +13,23 @@ module Sidekiq
       rescue => e
         raise e if skip_failure?
 
-        data = {
-          :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
-          :payload => msg,
-          :exception => e.class.to_s,
-          :error => e.message,
-          :backtrace => e.backtrace,
-          :worker => msg['class'],
-          :processor => "#{hostname}:#{process_id}-#{Thread.current.object_id}",
-          :queue => queue
-        }
+        msg['error_message'] = e.message
+        msg['error_class'] = e.class.name
+        msg['failed_at'] = Time.now.utc.to_f
 
+        if msg['backtrace'] == true
+          msg['error_backtrace'] = e.backtrace
+        elsif msg['backtrace'] == false
+          # do nothing
+        elsif msg['backtrace'].to_i != 0
+          msg['error_backtrace'] = e.backtrace[0..msg['backtrace'].to_i]
+        end
+
+        payload = Sidekiq.dump_json(msg)
         Sidekiq.redis do |conn|
-          conn.rpush(:failed, Sidekiq.dump_json(data))
+          conn.zadd('failure', Time.now.utc.to_f, payload)
           unless Sidekiq.failures_max_count == false
-            conn.ltrim(:failed, (-Sidekiq.failures_max_count), -1)
+            conn.zremrangebyrank('failure', 0, -(Sidekiq.failures_max_count + 1))
           end
         end
 
@@ -36,12 +38,16 @@ module Sidekiq
 
       private
 
-      def skip_failure?
-        failure_mode == :off || not_exhausted?
+      def failure_mode_off?
+        failure_mode == :off
       end
 
-      def not_exhausted?
-        failure_mode == :exhausted && !last_try?
+      def failure_mode_exhausted?
+        failure_mode == :exhausted
+      end
+
+      def skip_failure?
+        failure_mode_off? || failure_mode_exhausted? && !exhausted?
       end
 
       def failure_mode
@@ -57,8 +63,12 @@ module Sidekiq
         end
       end
 
-      def last_try?
-        ! msg['retry'] || retry_count == max_retries - 1
+      def exhausted?
+        !retriable? || retry_count >= max_retries
+      end
+
+      def retriable?
+        msg['retry']
       end
 
       def retry_count

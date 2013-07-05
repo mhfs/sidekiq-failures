@@ -5,6 +5,7 @@ rescue LoadError
 end
 
 require "sidekiq/failures/version"
+require "sidekiq/failures/failure_set"
 require "sidekiq/failures/middleware"
 require "sidekiq/failures/web_extension"
 
@@ -33,8 +34,8 @@ module Sidekiq
 
   # Sets the maximum number of failures to track
   #
-  # If the number of failures exceeds this number the list will be trimmed (oldest
-  # failures will be purged).
+  # If the number of failures exceeds this number the list will be trimmed
+  # (oldest failures will be purged).
   #
   # Defaults to 1000
   # Set to false to disable rotation
@@ -55,7 +56,7 @@ end
 
 Sidekiq.configure_server do |config|
   config.server_middleware do |chain|
-    chain.add Sidekiq::Failures::Middleware
+    chain.insert_before Sidekiq::Middleware::Server::RetryJobs, Sidekiq::Failures::Middleware
   end
 end
 
