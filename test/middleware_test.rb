@@ -7,7 +7,9 @@ module Sidekiq
         $invokes = 0
         @boss = MiniTest::Mock.new
         @processor = ::Sidekiq::Processor.new(@boss)
-        Sidekiq.server_middleware {|chain| chain.add Sidekiq::Failures::Middleware }
+        Sidekiq.server_middleware do |chain|
+          chain.insert_before Sidekiq::Middleware::Server::RetryJobs, Sidekiq::Failures::Middleware
+        end
         Sidekiq.redis = REDIS
         Sidekiq.redis { |c| c.flushdb }
         Sidekiq.instance_eval { @failures_default_mode = nil }

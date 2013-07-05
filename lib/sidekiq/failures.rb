@@ -55,7 +55,7 @@ end
 
 Sidekiq.configure_server do |config|
   config.server_middleware do |chain|
-    chain.add Sidekiq::Failures::Middleware
+    chain.insert_before Sidekiq::Middleware::Server::RetryJobs, Sidekiq::Failures::Middleware
   end
 end
 
