@@ -33,8 +33,8 @@ module Sidekiq
 
   # Sets the maximum number of failures to track
   #
-  # If the number of failures exceeds this number the list will be trimmed (oldest
-  # failures will be purged).
+  # If the number of failures exceeds this number the list will be trimmed
+  # (oldest failures will be purged).
   #
   # Defaults to 1000
   # Set to false to disable rotation
