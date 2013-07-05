@@ -13,16 +13,17 @@ module Sidekiq
       rescue => e
         raise e if skip_failure?
 
-        data = {
-          :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
-          :payload => msg,
-          :exception => e.class.to_s,
-          :error => e.message,
-          :backtrace => e.backtrace,
-          :worker => msg['class'],
-          :processor => "#{hostname}:#{process_id}-#{Thread.current.object_id}",
-          :queue => queue
-        }
+        msg['error_message'] = e.message
+        msg['error_class'] = e.class.name
+        msg['failed_at'] = Time.now.utc.to_f
+
+        if msg['backtrace'] == true
+          msg['error_backtrace'] = e.backtrace
+        elsif msg['backtrace'] == false
+          # do nothing
+        elsif msg['backtrace'].to_i != 0
+          msg['error_backtrace'] = e.backtrace[0..msg['backtrace'].to_i]
+        end
 
         payload = Sidekiq.dump_json(msg)
         Sidekiq.redis do |conn|
