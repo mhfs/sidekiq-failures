@@ -1,5 +1,6 @@
 module Sidekiq
   module Failures
+
     class Middleware
       include Sidekiq::Util
       attr_accessor :msg
@@ -16,14 +17,19 @@ module Sidekiq
           :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
           :payload => msg,
           :exception => e.class.to_s,
-          :error => e.to_s,
+          :error => e.message,
           :backtrace => e.backtrace,
           :worker => msg['class'],
-          :processor => "#{hostname}:#{process_id}-#{Thread.current.object_id}:default",
+          :processor => "#{hostname}:#{process_id}-#{Thread.current.object_id}",
           :queue => queue
         }
 
-        Sidekiq.redis { |conn| conn.lpush(:failed, Sidekiq.dump_json(data)) }
+        Sidekiq.redis do |conn|
+          conn.rpush(:failed, Sidekiq.dump_json(data))
+          unless Sidekiq.failures_max_count == false
+            conn.ltrim(:failed, (-Sidekiq.failures_max_count), -1)
+          end
+        end
 
         raise e
       end
@@ -52,7 +58,7 @@ module Sidekiq
       end
 
       def last_try?
-        retry_count == max_retries - 1
+        ! msg['retry'] || retry_count == max_retries - 1
       end
 
       def retry_count

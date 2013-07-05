@@ -1,4 +1,17 @@
 ## Unreleased
+
+## 0.2.1
+  * Fix exhausted mode when retry is disabled (@wr0ngway)
+
+## 0.2.0
+  * Added processor identity to failure data (@krasnoukhov)
+  * Handle Sidekiq::Shutdown exceptions (@krasnoukhov)
+  * Add failures maximum count option (@mathieulaporte)
+  * User Expception#message instead of Exception#to_s (@supaspoida)
+  * Removed web depencies (@LongMan)
+  * Stop overloading find_template (@zquestz)
+
+## 0.1.0
   * Allow per worker configuration of failure tracking mode. Thanks to
     @kbaum for most of the work.
   * Prevent sidekiq-failures from loading up sidekiq/processor (and thus

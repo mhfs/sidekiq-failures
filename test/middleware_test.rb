@@ -93,7 +93,7 @@ module Sidekiq
       it "doesn't record failure if going to be retired again and configured to track exhaustion by default" do
         Sidekiq.failures_default_mode = :exhausted
 
-        msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'] )
+        msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'retry' => true )
 
         assert_equal 0, failures_count
 
@@ -107,7 +107,7 @@ module Sidekiq
 
 
       it "doesn't record failure if going to be retired again and configured to track exhaustion" do
-        msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'failures' => 'exhausted')
+        msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'retry' => true, 'failures' => 'exhausted')
 
         assert_equal 0, failures_count
 
@@ -120,7 +120,35 @@ module Sidekiq
       end
 
       it "records failure if failing last retry and configured to track exhaustion" do
-        msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'retry_count' => 24, 'failures' => 'exhausted')
+        msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'retry' => true, 'retry_count' => 24, 'failures' => 'exhausted')
+
+        assert_equal 0, failures_count
+
+        assert_raises TestException do
+          @processor.process(msg)
+        end
+
+        assert_equal 1, failures_count
+        assert_equal 1, $invokes
+      end
+
+      it "records failure if retry disabled and configured to track exhaustion" do
+         msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'retry' => false, 'failures' => 'exhausted')
+ 
+         assert_equal 0, failures_count
+ 
+         assert_raises TestException do
+           @processor.process(msg)
+         end
+ 
+         assert_equal 1, failures_count
+         assert_equal 1, $invokes
+       end
+ 
+      it "records failure if retry disabled and configured to track exhaustion by default" do
+        Sidekiq.failures_default_mode = 'exhausted'
+
+        msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'retry' => false)
 
         assert_equal 0, failures_count
 
@@ -135,7 +163,7 @@ module Sidekiq
       it "records failure if failing last retry and configured to track exhaustion by default" do
         Sidekiq.failures_default_mode = 'exhausted'
 
-        msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'retry_count' => 24)
+        msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'retry' => true, 'retry_count' => 24)
 
         assert_equal 0, failures_count
 
@@ -145,6 +173,29 @@ module Sidekiq
 
         assert_equal 1, failures_count
         assert_equal 1, $invokes
+      end
+
+      it "removes old failures when failures_max_count has been reached" do
+        assert_equal 1000, Sidekiq.failures_max_count
+        Sidekiq.failures_max_count = 2
+
+        msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'])
+
+        assert_equal 0, failures_count
+
+        3.times do
+          assert_raises TestException do
+            ::Sidekiq::Processor.new(MiniTest::Mock.new).process(msg)
+          end
+        end
+
+        assert_equal 2, failures_count
+
+        Sidekiq.failures_max_count = false
+        assert Sidekiq.failures_max_count == false
+
+        Sidekiq.failures_max_count = nil
+        assert_equal 1000, Sidekiq.failures_max_count
       end
 
       def failures_count
