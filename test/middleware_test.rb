@@ -5,7 +5,7 @@ module Sidekiq
     describe "Middleware" do
       before do
         $invokes = 0
-        actor = Minitest::Mock.new
+        actor = MiniTest::Mock.new
         actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
         @boss = MiniTest::Mock.new
         @boss.expect(:async, actor, [])
