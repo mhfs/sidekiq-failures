@@ -24,8 +24,8 @@ jobs will be visible via a Failures tab in the Web UI.
 
 ### Maximum Tracked Failures
 
-Since each failed job/retry creates a new failure entry that will only be removed 
-by you manually, your failures list might consume more resources than you have 
+Since each failed job/retry creates a new failure entry that will only be removed
+by you manually, your failures list might consume more resources than you have
 available.
 
 To avoid this sidekiq-failures adopts a default of 1000 maximum tracked failures.
@@ -115,11 +115,7 @@ The valid modes are `:all`, `:exhausted` or `:off`.
 
 ## Dependencies
 
-Depends on Sidekiq >= 2.2.1
-
-## TODO
-
-* Allow triggering retry of specific failed jobs via Web UI.
+Depends on Sidekiq >= 2.9.0
 
 ## Contributing
 
