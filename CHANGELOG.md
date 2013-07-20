@@ -1,4 +1,6 @@
 ## Unreleased
+  * Show newest failures first (@PlugIN73)
+  * Fix specs (@krasnoukhov)
 
 ## 0.2.1
   * Fix exhausted mode when retry is disabled (@wr0ngway)
