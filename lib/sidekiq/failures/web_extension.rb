@@ -3,6 +3,19 @@ module Sidekiq
     module WebExtension
 
       def self.registered(app)
+
+        app.before do
+          locale = request.env["HTTP_ACCEPT_LANGUAGE"][0,2] if request.env["HTTP_ACCEPT_LANGUAGE"]
+          I18n.locale = locale || 'en'
+
+          if app.tabs.is_a?(Array)
+            # For sidekiq < 2.5
+            app.tabs << "failures"
+          else
+            app.tabs[I18n.t('sidekiq.extension.failures.tab')] = "failures"
+          end
+        end
+
         app.get "/failures" do
           view_path = File.join(File.expand_path("..", __FILE__), "views")
 

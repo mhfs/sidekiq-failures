@@ -1,0 +1,12 @@
+en:
+  sidekiq:
+    extension:
+      failures:
+        tab: "Failures"
+        title: 'Failed Jobs'
+        worker: 'Worker, Args'
+        queue: 'Queue'
+        failed_at: 'Failed At'
+        exception: 'Exception'
+        processor: 'Processor %{msg}'
+        no_failed_jobs: 'No failed jobs found.'

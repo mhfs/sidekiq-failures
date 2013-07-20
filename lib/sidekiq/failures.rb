@@ -4,6 +4,7 @@ rescue LoadError
   # client-only usage
 end
 
+require 'i18n'
 require "sidekiq/failures/version"
 require "sidekiq/failures/middleware"
 require "sidekiq/failures/web_extension"
@@ -61,11 +62,7 @@ end
 
 if defined?(Sidekiq::Web)
   Sidekiq::Web.register Sidekiq::Failures::WebExtension
-
-  if Sidekiq::Web.tabs.is_a?(Array)
-    # For sidekiq < 2.5
-    Sidekiq::Web.tabs << "failures"
-  else
-    Sidekiq::Web.tabs["Failures"] = "failures"
-  end
 end
+
+dir = File.expand_path(File.dirname(__FILE__) + "/../../")
+I18n.load_path += Dir[File.join(dir, 'locales', '*.yml').to_s]

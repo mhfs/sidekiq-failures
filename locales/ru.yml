@@ -1,0 +1,12 @@
+ru:
+  sidekiq:
+    extension:
+      failures:
+        tab: "Провалено"
+        title: 'Проваленные задачи'
+        worker: 'Воркер, Аргументы'
+        queue: 'Очередь'
+        failed_at: 'Провален'
+        exception: 'Исключение'
+        processor: 'Обработчик: %{msg}'
+        no_failed_jobs: 'Нет проваленных задач.'
