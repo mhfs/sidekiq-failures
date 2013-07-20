@@ -1,4 +1,5 @@
 ## Unreleased
+  * Bump sidekiq dep to >= 2.9.0
   * Show newest failures first (@PlugIN73)
   * Fix specs (@krasnoukhov)
 
