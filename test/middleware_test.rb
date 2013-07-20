@@ -41,6 +41,11 @@ module Sidekiq
 
         assert_equal 0, failures_count
 
+        actor = MiniTest::Mock.new
+        actor.expect(:processor_done, nil, [@processor])
+        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        2.times { @boss.expect(:async, actor, []) }
+
         assert_raises TestException do
           @processor.process(msg)
         end
@@ -53,6 +58,11 @@ module Sidekiq
         msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'failures' => true)
 
         assert_equal 0, failures_count
+
+        actor = MiniTest::Mock.new
+        actor.expect(:processor_done, nil, [@processor])
+        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        2.times { @boss.expect(:async, actor, []) }
 
         assert_raises TestException do
           @processor.process(msg)
@@ -69,7 +79,9 @@ module Sidekiq
 
         actor = MiniTest::Mock.new
         actor.expect(:processor_done, nil, [@processor])
-        @boss.expect(:async, actor, [])
+        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        2.times { @boss.expect(:async, actor, []) }
+
         @processor.process(msg)
         @boss.verify
 
@@ -81,6 +93,11 @@ module Sidekiq
         msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'failures' => false)
 
         assert_equal 0, failures_count
+
+        actor = MiniTest::Mock.new
+        actor.expect(:processor_done, nil, [@processor])
+        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        2.times { @boss.expect(:async, actor, []) }
 
         assert_raises TestException do
           @processor.process(msg)
@@ -97,6 +114,11 @@ module Sidekiq
 
         assert_equal 0, failures_count
 
+        actor = MiniTest::Mock.new
+        actor.expect(:processor_done, nil, [@processor])
+        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        2.times { @boss.expect(:async, actor, []) }
+
         assert_raises TestException do
           @processor.process(msg)
         end
@@ -111,6 +133,11 @@ module Sidekiq
 
         assert_equal 0, failures_count
 
+        actor = MiniTest::Mock.new
+        actor.expect(:processor_done, nil, [@processor])
+        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        2.times { @boss.expect(:async, actor, []) }
+
         assert_raises TestException do
           @processor.process(msg)
         end
@@ -124,6 +151,11 @@ module Sidekiq
 
         assert_equal 0, failures_count
 
+        actor = MiniTest::Mock.new
+        actor.expect(:processor_done, nil, [@processor])
+        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        2.times { @boss.expect(:async, actor, []) }
+
         assert_raises TestException do
           @processor.process(msg)
         end
@@ -133,16 +165,21 @@ module Sidekiq
       end
 
       it "records failure if retry disabled and configured to track exhaustion" do
-         msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'retry' => false, 'failures' => 'exhausted')
+        msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'retry' => false, 'failures' => 'exhausted')
+
+        assert_equal 0, failures_count
+
+        actor = MiniTest::Mock.new
+        actor.expect(:processor_done, nil, [@processor])
+        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        2.times { @boss.expect(:async, actor, []) }
+
+        assert_raises TestException do
+          @processor.process(msg)
+        end
  
-         assert_equal 0, failures_count
- 
-         assert_raises TestException do
-           @processor.process(msg)
-         end
- 
-         assert_equal 1, failures_count
-         assert_equal 1, $invokes
+        assert_equal 1, failures_count
+        assert_equal 1, $invokes
        end
  
       it "records failure if retry disabled and configured to track exhaustion by default" do
@@ -151,6 +188,11 @@ module Sidekiq
         msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'retry' => false)
 
         assert_equal 0, failures_count
+
+        actor = MiniTest::Mock.new
+        actor.expect(:processor_done, nil, [@processor])
+        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        2.times { @boss.expect(:async, actor, []) }
 
         assert_raises TestException do
           @processor.process(msg)
@@ -166,6 +208,11 @@ module Sidekiq
         msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'retry' => true, 'retry_count' => 24)
 
         assert_equal 0, failures_count
+
+        actor = MiniTest::Mock.new
+        actor.expect(:processor_done, nil, [@processor])
+        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        2.times { @boss.expect(:async, actor, []) }
 
         assert_raises TestException do
           @processor.process(msg)
@@ -184,8 +231,16 @@ module Sidekiq
         assert_equal 0, failures_count
 
         3.times do
+          boss = MiniTest::Mock.new
+          processor = ::Sidekiq::Processor.new(boss)
+          
+          actor = MiniTest::Mock.new
+          actor.expect(:processor_done, nil, [processor])
+          actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+          2.times { boss.expect(:async, actor, []) }
+
           assert_raises TestException do
-            ::Sidekiq::Processor.new(MiniTest::Mock.new).process(msg)
+            processor.process(msg)
           end
         end
 
