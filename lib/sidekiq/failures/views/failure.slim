@@ -16,9 +16,13 @@ table class="failure table table-bordered table-striped"
       td
         code= display_args(@failure['args'], 1000)
     tr
-      th JID
+      th = t('JID')
       td
         code= @failure.jid
+    tr
+      th = t('Processor')
+      td
+        code= @failure['processor']
     tr
       th = t('Enqueued')
       td== relative_time(@failure.enqueued_at)

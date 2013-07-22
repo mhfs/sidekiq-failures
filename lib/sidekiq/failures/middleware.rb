@@ -15,6 +15,7 @@ module Sidekiq
 
         msg['error_message'] = e.message
         msg['error_class'] = e.class.name
+        msg['processor'] = "#{hostname}:#{process_id}-#{Thread.current.object_id}"
         msg['failed_at'] = Time.now.utc.to_f
 
         if msg['backtrace'] == true
