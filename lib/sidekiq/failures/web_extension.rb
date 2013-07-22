@@ -2,11 +2,13 @@ module Sidekiq
   module Failures
     module WebExtension
       def self.registered(app)
+        app.helpers Paginator
+
         view_path = File.join(File.expand_path("..", __FILE__), "views")
 
         app.get "/failures" do
           @count = (params[:count] || 25).to_i
-          (@current_page, @total_size, @failures) = page("failure", params[:page], @count)
+          (@current_page, @total_size, @failures) = paginate("failure", params[:page], @count)
           @failures = @failures.map { |msg, score| [Sidekiq.load_json(msg), score] }
 
           render(:slim, File.read(File.join(view_path, "failures.slim")))

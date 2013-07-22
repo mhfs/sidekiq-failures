@@ -8,6 +8,7 @@ require "sidekiq/failures/version"
 require "sidekiq/failures/failure_entry"
 require "sidekiq/failures/failure_set"
 require "sidekiq/failures/middleware"
+require "sidekiq/failures/paginator"
 require "sidekiq/failures/web_extension"
 
 module Sidekiq
