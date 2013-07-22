@@ -15,7 +15,7 @@ module Sidekiq
         app.get "/failures/:key" do
           halt 404 unless params['key']
 
-          @failure = Sidekiq::FailureSet.new.fetch(*parse_params(params['key'])).first
+          @failure = FailureSet.new.fetch(*parse_params(params['key'])).first
           redirect "#{root_path}failures" if @failure.nil?
           render(:slim, File.read(File.join(view_path, "failure.slim")))
         end
@@ -24,7 +24,7 @@ module Sidekiq
           halt 404 unless params['key']
 
           params['key'].each do |key|
-            job = Sidekiq::FailureSet.new.fetch(*parse_params(key)).first
+            job = FailureSet.new.fetch(*parse_params(key)).first
             if params['retry']
               job.retry_failure
             elsif params['delete']
@@ -37,7 +37,7 @@ module Sidekiq
         app.post "/failures/:key" do
           halt 404 unless params['key']
 
-          job = Sidekiq::FailureSet.new.fetch(*parse_params(params['key'])).first
+          job = FailureSet.new.fetch(*parse_params(params['key'])).first
           if params['retry']
             job.retry_failure
           elsif params['delete']
@@ -47,12 +47,12 @@ module Sidekiq
         end
 
         app.post "/failures/all/delete" do
-          Sidekiq::FailureSet.new.clear
+          FailureSet.new.clear
           redirect "#{root_path}failures"
         end
 
         app.post "/failures/all/retry" do
-          Sidekiq::FailureSet.new.retry_all_failures
+          FailureSet.new.retry_all_failures
           redirect "#{root_path}failures"
         end
       end
