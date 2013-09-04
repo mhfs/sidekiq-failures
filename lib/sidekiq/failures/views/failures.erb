@@ -44,6 +44,17 @@
       </tr>
     <% end %>
   </table>
+  <div class="row">
+    <div class="span5">
+      <form class="form-inline" action="<%= "#{root_path}failures/remove" %>" method="post" style="margin: 20px 0">
+        <input class="btn btn-danger btn-small" type="submit" name="delete" value="Clear All" />
+        <label class="checkbox">
+          <input type="checkbox" name="counter" value="true" />
+          reset failed counter
+        </label>
+      </form>
+    </div>
+  </div>
 <% else %>
   <div class="alert alert-success">No failed jobs found.</div>
 <% end %>
