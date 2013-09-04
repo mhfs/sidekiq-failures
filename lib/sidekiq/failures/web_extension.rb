@@ -10,7 +10,11 @@ module Sidekiq
           (@current_page, @total_size, @messages) = page("failed", params[:page], @count)
           @messages = @messages.map { |msg| Sidekiq.load_json(msg) }
 
-          render(:slim, File.read(File.join(view_path, "failures.slim")))
+          if Sidekiq::VERSION < "2.14.0"
+            render(:slim, File.read(File.join(view_path, "failures.slim")))
+          else
+            render(:erb, File.read(File.join(view_path, "failures.erb")))
+          end
         end
 
         app.post "/failures/remove" do
