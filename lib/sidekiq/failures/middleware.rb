@@ -10,7 +10,7 @@ module Sidekiq
         yield
       rescue Sidekiq::Shutdown
         raise
-      rescue => e
+      rescue Exception => e
         raise e if skip_failure?
 
         data = {
