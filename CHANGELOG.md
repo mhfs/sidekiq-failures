@@ -1,4 +1,7 @@
 ## Unreleased
+
+## 0.2.2
+  * Support ERB for sidekiq >= 2.14.0 (@tobiassvn)
   * Bump sidekiq dep to >= 2.9.0
   * Show newest failures first (@PlugIN73)
   * Fix specs (@krasnoukhov)
