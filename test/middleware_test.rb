@@ -13,7 +13,7 @@ module Sidekiq
         Sidekiq.instance_eval { @failures_default_mode = nil }
       end
 
-      TestException = Class.new(StandardError)
+      TestException = Class.new(Exception)
       ShutdownException = Class.new(Sidekiq::Shutdown)
 
       class MockWorker
