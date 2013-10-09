@@ -17,6 +17,35 @@ module Sidekiq
           end
         end
 
+        app.post "/failures/retries" do
+          Sidekiq.redis do |c|
+            raw_jobs = []
+
+            c.multi do
+              params["ids"].each do |id|
+                raw_jobs << c.lindex("failed", id.to_i)
+              end
+            end
+
+            begin
+            raw_jobs.each do |raw_job|
+              job = Sidekiq.load_json(raw_job.value)
+
+              payload = job["payload"]
+              payload.delete("retry_count")
+              payload["retried_at"] = Time.now.utc
+
+              Sidekiq::Client.push(payload.merge("queue" => job["queue"]))
+              c.lrem("failed", 1, raw_job.value)
+            end
+            rescue Exception => e
+              puts "#{e.class.to_s}: #{e.message}"
+            end
+          end
+
+          redirect "#{root_path}failures"
+        end
+
         app.post "/failures/remove" do
           Sidekiq.redis {|c|
             c.multi do

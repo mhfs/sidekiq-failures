@@ -86,6 +86,27 @@ module Sidekiq
       end
     end
 
+    it 'requeues failed jobs' do
+      Sidekiq.redis do |c|
+        c.multi do
+          3.times do |i|
+            c.rpush("failed", Sidekiq.dump_json(:payload => {:class => "FooBar", :args => ["foo", i]}, :queue => "priority#{i}"))
+          end
+        end
+      end
+
+      post "/failures/retries", ids: ["0", "2"]
+
+      job = Sidekiq.redis {|c| Sidekiq.load_json(c.lpop("failed")) }
+      assert_equal job, {"payload" => {"class" => "FooBar", "args" => ["foo", 1]}, "queue" => "priority1"}
+
+      job = Sidekiq.redis {|c| Sidekiq.load_json(c.lpop("queue:priority0")) }
+      assert_equal job["args"], ["foo", 0]
+
+      job = Sidekiq.redis {|c| Sidekiq.load_json(c.lpop("queue:priority2")) }
+      assert_equal job["args"], ["foo", 2]
+    end
+
     def create_sample_failure
       data = {
         :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
