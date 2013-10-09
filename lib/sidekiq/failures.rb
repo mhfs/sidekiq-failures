@@ -12,6 +12,10 @@ module Sidekiq
 
   SIDEKIQ_FAILURES_MODES = [:all, :exhausted, :off].freeze
 
+  module Failures
+    QUEUE_KEY = :failed
+  end
+
   # Sets the default failure tracking mode.
   #
   # The value provided here will be the default behavior but can be overwritten
@@ -49,7 +53,8 @@ module Sidekiq
     @failures_max_count
   end
 
-  module Failures
+  def self.failed_queue_size
+    Sidekiq.redis {|r| r.llen(Failures::QUEUE_KEY) }
   end
 end
 
