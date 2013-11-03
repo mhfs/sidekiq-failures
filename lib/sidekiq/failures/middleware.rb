@@ -66,11 +66,7 @@ module Sidekiq
       end
 
       def max_retries
-        if msg['retry'].is_a?(Fixnum)
-          msg['retry']
-        else
-          default_max_retries
-        end
+        retry_middleware.send(:retry_attempts_from, msg['retry'], default_max_retries)
       end
 
       def retry_middleware
