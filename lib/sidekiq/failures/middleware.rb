@@ -14,7 +14,7 @@ module Sidekiq
         raise e if skip_failure?
 
         data = {
-          :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
+          :failed_at => Time.now.utc,
           :payload => msg,
           :exception => e.class.to_s,
           :error => e.message,

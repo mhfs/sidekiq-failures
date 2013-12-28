@@ -26,9 +26,7 @@
         </td>
         <td><%= msg['queue'] %></td>
         <td>
-          <time datetime="<%= "#{Time.parse(msg['failed_at']).getutc.iso8601}" %>">
-            <%= msg['failed_at'] %>
-          </time>
+          <%= relative_time(Time.parse(msg['failed_at'])) %>
         </td>
         <td style="overflow: auto; padding: 10px;">
           <a class="backtrace" href="#" onclick="$(this).next().toggle(); return false">
