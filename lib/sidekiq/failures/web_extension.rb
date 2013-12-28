@@ -14,12 +14,7 @@ module Sidekiq
         end
 
         app.post "/failures/remove" do
-          Sidekiq.redis {|c|
-            c.multi do
-              c.del("failed")
-              c.set("stat:failed", 0) if params["counter"]
-            end
-          }
+          Sidekiq::Failures.reset_failures(counter: params["counter"])
 
           redirect "#{root_path}failures"
         end
