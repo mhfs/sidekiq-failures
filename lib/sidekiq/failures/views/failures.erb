@@ -22,7 +22,18 @@
         <td style="overflow: hidden; text-overflow: ellipsis;">
           <%= msg['worker'] %>
           <br />
-          <%= msg['payload']['args'].inspect[0..100] %>
+
+          <% args = msg['payload']['args'].inspect %>
+          <% if args.length > 100 %>
+          <a class="args" href="#" onclick="$(this).next().toggle(); return false">
+            <%= args[0..100] %>...
+          </a>
+          <pre style="display: none; background: none; border: 0; width: 100%; font-size: 0.8em;">
+            <%= args %>
+          </pre>
+          <% else %>
+            <%= args %>
+          <% end %>
         </td>
         <td><%= msg['queue'] %></td>
         <td>
