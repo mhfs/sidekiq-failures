@@ -254,6 +254,23 @@ module Sidekiq
         assert_equal 1000, Sidekiq.failures_max_count
       end
 
+      it 'returns the total number of failed jobs in the queue' do
+        msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'failures' => true)
+
+        assert_equal 0, Sidekiq::Failures.count
+
+        actor = MiniTest::Mock.new
+        actor.expect(:processor_done, nil, [@processor])
+        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        @boss.expect(:async, actor, [])
+
+        assert_raises TestException do
+          @processor.process(msg)
+        end
+
+        assert_equal 1, Sidekiq::Failures.count
+      end
+
       def failures_count
         Sidekiq.redis { |conn|conn.llen('failed') } || 0
       end

@@ -50,13 +50,20 @@ module Sidekiq
   end
 
   module Failures
+
+    LIST_KEY = :failed
+
     def self.reset_failures(options = {})
       Sidekiq.redis { |c|
         c.multi do
-          c.del("failed")
+          c.del(LIST_KEY)
           c.set("stat:failed", 0) if options[:counter] || options["counter"]
         end
       }
+    end
+
+    def self.count
+      Sidekiq.redis {|r| r.llen(LIST_KEY) }
     end
   end
 end
