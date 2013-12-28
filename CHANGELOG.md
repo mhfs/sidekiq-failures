@@ -1,5 +1,15 @@
 ## Unreleased
 
+## 0.3.0
+  * Bump sidekiq dependency to sidekiq >= 2.14.0
+  * Remove slim templates and dependecy
+  * Escape exception info when outputing to html
+  * Add `Sidekiq::Failures.reset_failures` helper method
+  * Add `Sidekiq::Failures.count` helper method (@zanker)
+  * Adhere to sidekiq approach of showing UTC times
+  * Catch all exceptions, not just those that inherit from StandardError (@tylerkovacs)
+  * Fix pricate method call (@bwthomas)
+
 ## 0.2.2
   * Support ERB for sidekiq >= 2.14.0 (@tobiassvn)
   * Bump sidekiq dep to >= 2.9.0
