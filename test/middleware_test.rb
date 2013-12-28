@@ -27,6 +27,23 @@ module Sidekiq
         end
       end
 
+      it 'returns the total number of failed jobs in the queue' do
+        msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'failures' => true)
+
+        assert_equal 0, Sidekiq.failed_queue_size
+
+        actor = MiniTest::Mock.new
+        actor.expect(:processor_done, nil, [@processor])
+        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        @boss.expect(:async, actor, [])
+
+        assert_raises TestException do
+          @processor.process(msg)
+        end
+
+        assert_equal 1, Sidekiq.failed_queue_size
+      end
+
       it 'raises an error when failures_default_mode is configured incorrectly' do
         assert_raises ArgumentError do
           Sidekiq.failures_default_mode = 'exhaustion'
