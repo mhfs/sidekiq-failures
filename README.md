@@ -113,9 +113,30 @@ end
 
 The valid modes are `:all`, `:exhausted` or `:off`.
 
+## Helper Methods
+
+### Failures Count
+
+Gives back the number of failed jobs currently stored in Sidekiq Failures. Notice that it's
+different from `Sidekiq` built in failed stat. Also, notice that this might be
+influenced by `failures_max_count`.
+
+```ruby
+Sidekiq::Failures.count
+```
+
+### Reset Failures
+
+Gives a convenient way of reseting Sidekiq Failure stored failed jobs programmatically.
+Takes an options hash and if the `counter` key is present also resets Sidekiq own failed stats.
+
+```ruby
+Sidekiq::Failures.reset_failures
+```
+
 ## Dependencies
 
-Depends on Sidekiq >= 2.9.0
+Depends on Sidekiq >= 2.14.0
 
 ## Contributing
 
