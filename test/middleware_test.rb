@@ -4,6 +4,7 @@ module Sidekiq
   module Failures
     describe "Middleware" do
       before do
+        Celluloid.boot
         $invokes = 0
         @boss = MiniTest::Mock.new
         @processor = ::Sidekiq::Processor.new(@boss)
@@ -177,11 +178,11 @@ module Sidekiq
         assert_raises TestException do
           @processor.process(msg)
         end
- 
+
         assert_equal 1, failures_count
         assert_equal 1, $invokes
        end
- 
+
       it "records failure if retry disabled and configured to track exhaustion by default" do
         Sidekiq.failures_default_mode = 'exhausted'
 
@@ -233,7 +234,7 @@ module Sidekiq
         3.times do
           boss = MiniTest::Mock.new
           processor = ::Sidekiq::Processor.new(boss)
-          
+
           actor = MiniTest::Mock.new
           actor.expect(:processor_done, nil, [processor])
           actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
