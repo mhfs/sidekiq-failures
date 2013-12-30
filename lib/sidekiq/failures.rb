@@ -5,6 +5,8 @@ rescue LoadError
 end
 
 require "sidekiq/failures/version"
+require "sidekiq/failures/sorted_entry"
+require "sidekiq/failures/failure_set"
 require "sidekiq/failures/middleware"
 require "sidekiq/failures/web_extension"
 
@@ -50,37 +52,27 @@ module Sidekiq
   end
 
   module Failures
-
     LIST_KEY = :failed
 
-    def self.reset_failures(options = {})
-      Sidekiq.redis { |c|
-        c.multi do
-          c.del(LIST_KEY)
-          c.set("stat:failed", 0) if options[:counter] || options["counter"]
-        end
-      }
+    def self.reset_failures
+      Sidekiq.redis { |c| c.set("stat:failed", 0) }
     end
 
     def self.count
-      Sidekiq.redis {|r| r.llen(LIST_KEY) }
+      Sidekiq.redis {|r| r.zcard(LIST_KEY) }
     end
   end
 end
 
 Sidekiq.configure_server do |config|
   config.server_middleware do |chain|
-    chain.add Sidekiq::Failures::Middleware
+    chain.insert_before Sidekiq::Middleware::Server::RetryJobs,
+                        Sidekiq::Failures::Middleware
   end
 end
 
 if defined?(Sidekiq::Web)
   Sidekiq::Web.register Sidekiq::Failures::WebExtension
-
-  if Sidekiq::Web.tabs.is_a?(Array)
-    # For sidekiq < 2.5
-    Sidekiq::Web.tabs << "failures"
-  else
-    Sidekiq::Web.tabs["Failures"] = "failures"
-  end
+  Sidekiq::Web.tabs["Failures"] = "failures"
+  Sidekiq::Web.settings.locales << File.join(File.dirname(__FILE__), "failures/locales")
 end
