@@ -8,7 +8,7 @@
   * Add `Sidekiq::Failures.count` helper method (@zanker)
   * Adhere to sidekiq approach of showing UTC times
   * Catch all exceptions, not just those that inherit from StandardError (@tylerkovacs)
-  * Fix pricate method call (@bwthomas)
+  * Fix private method call (@bwthomas)
 
 ## 0.2.2
   * Support ERB for sidekiq >= 2.14.0 (@tobiassvn)
