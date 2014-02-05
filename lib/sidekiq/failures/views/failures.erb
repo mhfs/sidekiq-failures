@@ -22,7 +22,7 @@
         <td style="overflow: hidden; text-overflow: ellipsis;">
           <%= msg['worker'] %>
           <br />
-          <%= msg['payload']['args'].inspect[0..100] %>
+          <%= h(msg['payload']['args'].inspect[0..100]) %>
         </td>
         <td><%= msg['queue'] %></td>
         <td>
