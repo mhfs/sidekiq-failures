@@ -2,7 +2,6 @@ module Sidekiq
   module Failures
 
     class Middleware
-      include Sidekiq::Util
       attr_accessor :msg
 
       def call(worker, msg, queue)
@@ -20,7 +19,7 @@ module Sidekiq
           :error => e.message,
           :backtrace => e.backtrace,
           :worker => msg['class'],
-          :processor => "#{hostname}:#{process_id}-#{Thread.current.object_id}",
+          :processor => identity,
           :queue => queue
         }
 
@@ -75,6 +74,14 @@ module Sidekiq
 
       def default_max_retries
         Sidekiq::Middleware::Server::RetryJobs::DEFAULT_MAX_RETRY_ATTEMPTS
+      end
+
+      def hostname
+        Socket.gethostname
+      end
+
+      def identity
+        @@identity ||= "#{hostname}:#{$$}"
       end
     end
   end
