@@ -13,7 +13,7 @@ module Sidekiq
 
       def fetch(score, jid = nil)
         elements = Sidekiq.redis do |conn|
-          conn.zrangebyscore(name, score, score)
+          conn.zrangebyscore(LIST_KEY, score, score)
         end
 
         ret_val = elements.inject([]) do |result, element|
@@ -30,7 +30,7 @@ module Sidekiq
 
       def clear
         Sidekiq.redis do |conn|
-          conn.del(@name)
+          conn.del(LIST_KEY)
         end
       end
 
@@ -44,7 +44,7 @@ module Sidekiq
           range_start = page * page_size + offset_size
           range_end   = page * page_size + offset_size + (page_size - 1)
           elements = Sidekiq.redis do |conn|
-            conn.zrange name, range_start, range_end, :with_scores => true
+            conn.zrange LIST_KEY, range_start, range_end, :with_scores => true
           end
           break if elements.empty?
           page -= 1
@@ -58,7 +58,7 @@ module Sidekiq
       def delete(score, jid = nil)
         if jid
           elements = Sidekiq.redis do |conn|
-            conn.zrangebyscore(name, score, score)
+            conn.zrangebyscore(LIST_KEY, score, score)
           end
 
           elements_with_jid = elements.map do |element|
@@ -67,8 +67,8 @@ module Sidekiq
             if message["jid"] == jid
               _, @_size = Sidekiq.redis do |conn|
                 conn.multi do
-                  conn.zrem(@name, element)
-                  conn.zcard @name
+                  conn.zrem(LIST_KEY, element)
+                  conn.zcard LIST_KEY
                 end
               end
             end
@@ -77,8 +77,8 @@ module Sidekiq
         else
           count, @_size = Sidekiq.redis do |conn|
             conn.multi do
-              conn.zremrangebyscore(@name, score, score)
-              conn.zcard @name
+              conn.zremrangebyscore(LIST_KEY, score, score)
+              conn.zcard LIST_KEY
             end
           end
           count != 0
