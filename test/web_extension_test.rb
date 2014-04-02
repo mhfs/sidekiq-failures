@@ -46,60 +46,153 @@ module Sidekiq
         last_response.body.wont_match /No failed jobs found/
       end
 
-      it 'has the clear all form and action' do
-        last_response.body.must_match /failures\/remove/
-        last_response.body.must_match /method=\"post/
-        last_response.body.must_match /Clear All/
-        last_response.body.must_match /reset failed counter/
+      it 'has the reset counter form and action' do
+        last_response.body.must_match /failures\/all\/reset/
+        last_response.body.must_match /Reset Counter/
       end
 
-      it 'can remove all failures without clearing counter' do
+      it 'can reset counter' do
         assert_equal failed_count, "1"
 
         last_response.body.must_match /HardWorker/
 
-        post '/failures/remove'
+        post '/failures/all/reset'
         last_response.status.must_equal 302
         last_response.location.must_match /failures$/
 
         get '/failures'
         last_response.status.must_equal 200
-        last_response.body.must_match /No failed jobs found/
-
-        assert_equal failed_count, "1"
-      end
-
-      it 'can remove all failures and clear counter' do
-        assert_equal failed_count, "1"
-
         last_response.body.must_match /HardWorker/
-
-        post '/failures/remove', counter: "true"
-        last_response.status.must_equal 302
-        last_response.location.must_match /failures$/
-
-        get '/failures'
-        last_response.status.must_equal 200
-        last_response.body.must_match /No failed jobs found/
 
         assert_equal failed_count, "0"
+      end
+
+      it 'has the delete all form and action' do
+        last_response.body.must_match /failures\/all\/delete/
+        last_response.body.must_match /Delete All/
+      end
+
+      it 'can delete all failures' do
+        assert_equal failed_count, "1"
+
+        last_response.body.must_match /HardWorker/
+
+        post '/failures/all/delete'
+        last_response.status.must_equal 302
+        last_response.location.must_match /failures$/
+
+        get '/failures'
+        last_response.status.must_equal 200
+        last_response.body.must_match /No failed jobs found/
+
+        assert_equal failed_count, "1"
+      end
+
+      it 'has the retry all form and action' do
+        last_response.body.must_match /failures\/all\/retry/
+        last_response.body.must_match /Retry All/
+      end
+
+      it 'can retry all failures' do
+        assert_equal failed_count, "1"
+
+        last_response.body.must_match /HardWorker/
+        post '/failures/all/retry'
+        last_response.status.must_equal 302
+        last_response.location.must_match /failures/
+
+        get '/failures'
+        last_response.status.must_equal 200
+        last_response.body.must_match(/No failed jobs found/)
+      end
+
+      it 'can delete failure from the list' do
+        assert_equal failed_count, "1"
+
+        last_response.body.must_match /HardWorker/
+
+        post '/failures', { :key => [failure_score], :delete => 'Delete' }
+        last_response.status.must_equal 302
+        last_response.location.must_match /failures/
+
+        get '/failures'
+        last_response.status.must_equal 200
+        last_response.body.must_match /No failed jobs found/
+      end
+
+      it 'can retry failure from the list' do
+        assert_equal failed_count, "1"
+
+        last_response.body.must_match /HardWorker/
+
+        post '/failures', { :key => [failure_score], :retry => 'Retry Now' }
+        last_response.status.must_equal 302
+        last_response.location.must_match /failures/
+
+        get '/failures'
+        last_response.status.must_equal 200
+        last_response.body.must_match /No failed jobs found/
+      end
+    end
+
+    describe 'when there is failure' do
+      before do
+        create_sample_failure
+        get "/failures/#{failure_score}"
+      end
+
+      it 'should be successful' do
+        last_response.status.must_equal 200
+      end
+
+      it 'can didplay failure page' do
+        last_response.body.must_match /Job/
+        last_response.body.must_match /HardWorker/
+        last_response.body.must_match /ArgumentError/
+        last_response.body.must_match /file1/
+      end
+
+      it 'can delete failure' do
+        last_response.body.must_match /HardWorker/
+
+        post "/failures/#{failure_score}", :delete => 'Delete'
+        last_response.status.must_equal 302
+        last_response.location.must_match /failures/
+
+        get "/failures/#{failure_score}"
+        last_response.status.must_equal 302
+        last_response.location.must_match /failures/
+      end
+
+      it 'can retry failure' do
+        last_response.body.must_match /HardWorker/
+
+        post "/failures/#{failure_score}", :retry => 'Retry Now'
+        last_response.status.must_equal 302
+        last_response.location.must_match /failures/
+
+        get "/failures/#{failure_score}"
+        last_response.status.must_equal 302
+        last_response.location.must_match /failures/
       end
     end
 
     def create_sample_failure
       data = {
-        :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
-        :payload => { :args => ["bob", 5] },
-        :exception => "ArgumentError",
-        :error => "Some new message",
-        :backtrace => ["path/file1.rb", "path/file2.rb"],
-        :worker => 'HardWorker',
-        :queue => 'default'
+        :queue => 'default',
+        :class => 'HardWorker',
+        :args  => ['bob', 5],
+        :jid   => 1,
+        :enqueued_at     => Time.now.utc.to_f,
+        :failed_at       => Time.now.utc.to_f,
+        :error_class     => 'ArgumentError',
+        :error_message   => 'Some new message',
+        :error_backtrace => ["path/file1.rb", "path/file2.rb"]
       }
 
       Sidekiq.redis do |c|
         c.multi do
-          c.rpush("failed", Sidekiq.dump_json(data))
+          c.zadd(Sidekiq::Failures::LIST_KEY, failure_score, Sidekiq.dump_json(data))
           c.set("stat:failed", 1)
         end
       end
@@ -107,6 +200,10 @@ module Sidekiq
 
     def failed_count
       Sidekiq.redis { |c| c.get("stat:failed") }
+    end
+
+    def failure_score
+      Time.at(1).to_f
     end
   end
 end
