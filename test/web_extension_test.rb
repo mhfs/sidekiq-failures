@@ -145,7 +145,7 @@ module Sidekiq
         last_response.status.must_equal 200
       end
 
-      it 'can didplay failure page' do
+      it 'can display failure page' do
         last_response.body.must_match /Job/
         last_response.body.must_match /HardWorker/
         last_response.body.must_match /ArgumentError/
