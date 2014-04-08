@@ -4,6 +4,7 @@ rescue LoadError
   # client-only usage
 end
 
+require "sidekiq/api"
 require "sidekiq/failures/version"
 require "sidekiq/failures/sorted_entry"
 require "sidekiq/failures/failure_set"
