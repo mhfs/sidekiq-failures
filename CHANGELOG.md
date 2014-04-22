@@ -1,5 +1,12 @@
 ## Unreleased
 
+## 0.4.0
+  * Bump sidekiq dependency to sidekiq >= 2.16.0
+  * Introduce delete(all) / retry(all) (@spectator)
+  * Fix Sidekiq 3 compatibility (@petergoldstein)
+  * Sidekiq 3 compatibility cleanup (@spectator)
+  * Explicitly require sidekiq/api (@krasnoukhov)
+
 ## 0.3.0
   * Bump sidekiq dependency to sidekiq >= 2.14.0
   * Remove slim templates and dependecy
