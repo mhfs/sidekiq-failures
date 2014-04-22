@@ -7,7 +7,7 @@
       <%= erb :_paging, :locals => { :url => "#{root_path}failures" } %>
     </div>
   <% end %>
-  <%= filtering('failures') %>
+  <%= filtering('failures') if respond_to?(:filtering) %>
 </header>
 
 <% if @failures.size > 0 %>
