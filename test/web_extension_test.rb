@@ -135,6 +135,24 @@ module Sidekiq
       end
     end
 
+    describe 'when there are failures with deprecated format' do
+      before do
+        create_sample_failure(args: nil, payload: { args: ['bob', 5] })
+        get '/failures'
+      end
+
+      it 'should be successful' do
+        last_response.status.must_equal 200
+      end
+
+      it 'can display failures page with failures listed' do
+        last_response.body.must_match /Failed Jobs/
+        last_response.body.must_match /HardWorker/
+        last_response.body.must_match /ArgumentError/
+        last_response.body.wont_match /No failed jobs found/
+      end
+    end
+
     describe 'when there is failure' do
       before do
         create_sample_failure
@@ -177,7 +195,7 @@ module Sidekiq
       end
     end
 
-    def create_sample_failure
+    def create_sample_failure(data = {})
       data = {
         :queue => 'default',
         :class => 'HardWorker',
@@ -188,7 +206,7 @@ module Sidekiq
         :error_class     => 'ArgumentError',
         :error_message   => 'Some new message',
         :error_backtrace => ["path/file1.rb", "path/file2.rb"]
-      }
+      }.merge(data)
 
       Sidekiq.redis do |c|
         c.multi do
