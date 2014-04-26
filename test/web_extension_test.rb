@@ -20,6 +20,8 @@ module Sidekiq
       last_response.status.must_equal 200
       last_response.body.must_match /Sidekiq/
       last_response.body.must_match /Failures/
+      last_response.body.must_match \
+        /<a href="\/failures">(.*?)<span class="desc">Failed<\/span>(.*?)<\/a>/m
     end
 
     it 'can display failures page without any failures' do
