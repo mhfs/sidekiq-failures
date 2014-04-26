@@ -66,7 +66,23 @@ module Sidekiq
           FailureSet.new.retry_all_failures
           redirect "#{root_path}failures"
         end
+
+        app.after do
+          if String === response.body
+            body hijack_failed(response.body)
+          end
+        end
+
+        app.helpers do
+          def hijack_failed(body)
+            body.gsub(
+              /<li class="failed(.*?)">(.*?)<\/li>/m,
+              "<li class=\"failed\\1\"><a href=\"#{root_path}failures\">\\2</a></li>"
+            )
+          end
+        end
       end
+
     end
   end
 end
