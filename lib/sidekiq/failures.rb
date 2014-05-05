@@ -60,7 +60,7 @@ module Sidekiq
     end
 
     def self.count
-      Sidekiq.redis {|r| r.zcard(LIST_KEY) }
+      Sidekiq::Stats.new.failed
     end
   end
 end

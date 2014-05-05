@@ -2,6 +2,8 @@
 
 ## 0.4.1
   * Restore compatibility for failed payloads created with 0.3.0
+  * Ability to reset failed counter anyway, there are Failed jobs or not. (@davetoxa)
+  * Fix sidekiq failures counter (@davetoxa)
 
 ## 0.4.0
   * Bump sidekiq dependency to sidekiq >= 2.16.0
