@@ -60,9 +60,6 @@
     <input class="btn btn-danger btn-xs pull-left" type="submit" name="delete" value="<%= t('Delete') %>" />
   </form>
 
-  <form action="<%= root_path %>failures/all/reset" method="post">
-    <input class="btn btn-danger btn-xs pull-right" type="submit" name="reset" value="<%= t('Reset Counter') %>" data-confirm="<%= t('AreYouSure') %>" />
-  </form>
   <form action="<%= root_path %>failures/all/delete" method="post">
     <input class="btn btn-danger btn-xs pull-right" type="submit" name="delete" value="<%= t('DeleteAll') %>" data-confirm="<%= t('AreYouSure') %>" />
   </form>
@@ -73,3 +70,7 @@
 <% else %>
   <div class="alert alert-success"><%= t('NoFailedJobsFound') %></div>
 <% end %>
+
+<form action="<%= root_path %>failures/all/reset" method="post">
+  <input class="btn btn-danger btn-xs pull-right" type="submit" name="reset" value="<%= t('Reset Counter') %>" data-confirm="<%= t('AreYouSure') %>" />
+</form>
