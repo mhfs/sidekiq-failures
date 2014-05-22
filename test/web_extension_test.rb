@@ -168,6 +168,17 @@ module Sidekiq
       end
     end
 
+    describe 'when there are failures with old timestamp format' do
+      before do
+        create_sample_failure failed_at: Time.now.strftime('%Y-%m-%dT%H:%M:%SZ')
+        get '/failures'
+      end
+
+      it 'should be successful' do
+        last_response.status.must_equal 200
+      end
+    end
+
     describe 'when there is failure' do
       before do
         create_sample_failure
