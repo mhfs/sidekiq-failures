@@ -1,5 +1,9 @@
 ## Unreleased
 
+## 0.4.2
+  * Bump sidekiq dependency to 2.16.0 (@davetoxa)
+  * Handle legacy timestamps (@maltoe)
+
 ## 0.4.1
   * Restore compatibility for failed payloads created with 0.3.0
 
