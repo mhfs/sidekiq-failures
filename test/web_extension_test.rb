@@ -135,50 +135,6 @@ module Sidekiq
       end
     end
 
-    describe 'when there are failures with deprecated format' do
-      before do
-        create_sample_failure(args: nil, payload: { args: ['bob', 5] })
-        get '/failures'
-      end
-
-      it 'should be successful' do
-        last_response.status.must_equal 200
-      end
-
-      it 'can display failures page with failures listed' do
-        last_response.body.must_match /Failed Jobs/
-        last_response.body.must_match /HardWorker/
-        last_response.body.must_match /ArgumentError/
-        last_response.body.wont_match /No failed jobs found/
-      end
-    end
-
-    describe 'when there are failures with unescaped data' do
-      before do
-        create_sample_failure(args: ['<h1>omg</h1>'], error_message: '<p>wow</p>')
-        get '/failures'
-      end
-
-      it 'can escape arguments' do
-        last_response.body.must_match /&quot;&lt;h1&gt;omg&lt;&#x2F;h1&gt;&quot;/
-      end
-
-      it 'can escape error message' do
-        last_response.body.must_match /ArgumentError: &lt;p&gt;wow&lt;&#x2F;p&gt;/
-      end
-    end
-
-    describe 'when there are failures with old timestamp format' do
-      before do
-        create_sample_failure failed_at: Time.now.strftime('%Y-%m-%dT%H:%M:%SZ')
-        get '/failures'
-      end
-
-      it 'should be successful' do
-        last_response.status.must_equal 200
-      end
-    end
-
     describe 'when there is failure' do
       before do
         create_sample_failure
@@ -218,6 +174,47 @@ module Sidekiq
         get "/failures/#{failure_score}"
         last_response.status.must_equal 302
         last_response.location.must_match /failures/
+      end
+    end
+
+    describe 'when there is specific failure' do
+      describe 'with unescaped data' do
+        before do
+          create_sample_failure(args: ['<h1>omg</h1>'], error_message: '<p>wow</p>')
+          get '/failures'
+        end
+
+        it 'can escape arguments' do
+          last_response.body.must_match /&quot;&lt;h1&gt;omg&lt;&#x2F;h1&gt;&quot;/
+        end
+
+        it 'can escape error message' do
+          last_response.body.must_match /ArgumentError: &lt;p&gt;wow&lt;&#x2F;p&gt;/
+        end
+      end
+
+      describe 'with deprecated payload' do
+        before do
+          create_sample_failure(args: nil, payload: { args: ['bob', 5] })
+          get '/failures'
+        end
+
+        it 'should be successful' do
+          last_response.status.must_equal 200
+          last_response.body.wont_match /No failed jobs found/
+        end
+      end
+
+      describe 'with deprecated timestamp' do
+        before do
+          create_sample_failure(failed_at: Time.now.strftime('%Y-%m-%dT%H:%M:%SZ'))
+          get '/failures'
+        end
+
+        it 'should be successful' do
+          last_response.status.must_equal 200
+          last_response.body.wont_match /No failed jobs found/
+        end
       end
     end
 

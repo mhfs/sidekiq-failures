@@ -41,7 +41,7 @@
           <td>
             <a href="<%= root_path %>queues/<%= entry.queue %>"><%= entry.queue %></a>
           </td>
-          <td><%= relative_time(entry['failed_at'].is_a?(Float) ? Time.at(entry['failed_at']) : Time.parse(entry['failed_at'])) %></td>
+          <td><%= safe_relative_time(entry['failed_at']) %></td>
           <td style="overflow: auto; padding: 10px;">
             <a class="backtrace" href="#" onclick="$(this).next().toggle(); return false">
               <%= h entry['error_class'] %>: <%= h entry['error_message'] %>
