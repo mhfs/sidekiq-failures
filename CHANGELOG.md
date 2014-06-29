@@ -1,5 +1,8 @@
 ## Unreleased
 
+## 0.4.3
+  * Handle numeric timestamps format (@krasnoukhov)
+
 ## 0.4.2
   * Bump sidekiq dependency to 2.16.0 (@davetoxa)
   * Handle legacy timestamps (@maltoe)
