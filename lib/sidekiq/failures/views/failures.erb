@@ -70,6 +70,12 @@
     <input class="btn btn-danger btn-xs pull-right" type="submit" name="retry" value="<%= t('RetryAll') %>" data-confirm="<%= t('AreYouSure') %>" />
   </form>
 
+  <% if @failures.size > 0 && @total_size > @count %>
+    <div class="col-sm-4">
+      <%= erb :_paging, :locals => { :url => "#{root_path}failures" } %>
+    </div>
+  <% end %>
+
 <% else %>
   <div class="alert alert-success"><%= t('NoFailedJobsFound') %></div>
 <% end %>
