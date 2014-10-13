@@ -1,5 +1,7 @@
 ## Unreleased
 
+  * Add paging to bottom of the view (@czarneckid)
+
 ## 0.4.3
   * Handle numeric timestamps format (@krasnoukhov)
 
