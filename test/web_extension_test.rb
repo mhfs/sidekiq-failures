@@ -29,6 +29,12 @@ module Sidekiq
       last_response.body.must_match /No failed jobs found/
     end
 
+    it 'has the reset counter form and action' do
+      get '/failures'
+      last_response.body.must_match /failures\/all\/reset/
+      last_response.body.must_match /Reset Counter/
+    end
+
     describe 'when there are failures' do
       before do
         create_sample_failure
@@ -44,11 +50,6 @@ module Sidekiq
         last_response.body.must_match /HardWorker/
         last_response.body.must_match /ArgumentError/
         last_response.body.wont_match /No failed jobs found/
-      end
-
-      it 'has the reset counter form and action' do
-        last_response.body.must_match /failures\/all\/reset/
-        last_response.body.must_match /Reset Counter/
       end
 
       it 'can reset counter' do
