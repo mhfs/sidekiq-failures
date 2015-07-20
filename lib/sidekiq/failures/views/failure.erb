@@ -24,6 +24,7 @@
   </tbody>
 </table>
 <form class="form-horizontal" action="<%= root_path %>failures/<%= job_params(@failure, @failure.score) %>" method="post">
+  <%= csrf_tag %>
   <a class="btn" href="<%= root_path %>failures"><%= t('GoBack') %></a>
   <input class="btn btn-primary" type="submit" name="retry" value="<%= t('RetryNow') %>" />
   <input class="btn btn-danger" type="submit" name="delete" value="<%= t('Delete') %>" />
