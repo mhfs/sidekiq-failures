@@ -1,5 +1,10 @@
 ## Unreleased
 
+## 0.4.5
+
+  * Limit error message to 500 symbols (@antonzaytsev)
+  * Add conditional csrf_tag to each form instance (@JamesChevalier)
+
 ## 0.4.4
 
   * Add paging to bottom of the view (@czarneckid)
