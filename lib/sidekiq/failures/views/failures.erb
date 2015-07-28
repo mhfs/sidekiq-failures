@@ -21,11 +21,11 @@
               <input type="checkbox" class="check_all" />
             </label>
           </th>
-          <th style="width: 10%"><%= t('FailedAt') %></th>
-          <th style="width: 10%"><%= t('Queue') %></th>
-          <th style="width: 20%"><%= t('Worker') %></th>
-          <th style="width: 10%"><%= t('Arguments') %></th>
-          <th style="width: 50%"><%= t('Error') %></th>
+          <th><%= t('FailedAt') %></th>
+          <th><%= t('Queue') %></th>
+          <th><%= t('Worker') %></th>
+          <th><%= t('Arguments') %></th>
+          <th><%= t('Error') %></th>
         </tr>
       </thead>
       <% @failures.each do |entry| %>
