@@ -19,7 +19,7 @@ module Sidekiq
 
         app.get "/failures" do
           @count = (params[:count] || 25).to_i
-          (@current_page, @total_size, @failures) = page(LIST_KEY, params[:page], @count)
+          (@current_page, @total_size, @failures) = page(LIST_KEY, params[:page], @count, :reverse => true)
           @failures = @failures.map {|msg, score| Sidekiq::SortedEntry.new(nil, score, msg) }
 
           render(:erb, File.read(File.join(view_path, "failures.erb")))
