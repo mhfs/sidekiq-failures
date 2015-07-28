@@ -78,6 +78,17 @@ module Sidekiq
           FailureSet.new.retry_all_failures
           redirect "#{root_path}failures"
         end
+
+        app.get '/filter/failures' do
+          redirect "#{root_path}failures"
+        end
+
+        app.post '/filter/failures' do
+          @failures = Sidekiq::Failures::FailureSet.new.scan("*#{params[:substr]}*")
+          @current_page = 1
+          @count = @total_size = @failures.size
+          render(:erb, File.read(File.join(view_path, "failures.erb")))
+        end
       end
     end
   end
