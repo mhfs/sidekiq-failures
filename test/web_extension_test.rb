@@ -176,6 +176,15 @@ module Sidekiq
         last_response.status.must_equal 302
         last_response.location.must_match /failures/
       end
+
+      if defined? Sidekiq::Pro
+        it 'can filter failure' do
+          create_sample_failure
+          post '/filter/failures', substr: 'new'
+
+          last_response.status.must_equal 200
+        end
+      end
     end
 
     describe 'when there is specific failure' do

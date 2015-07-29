@@ -19,7 +19,7 @@ module Sidekiq
 
         app.get "/failures" do
           @count = (params[:count] || 25).to_i
-          (@current_page, @total_size, @failures) = page(LIST_KEY, params[:page], @count)
+          (@current_page, @total_size, @failures) = page(LIST_KEY, params[:page], @count, :reverse => true)
           @failures = @failures.map {|msg, score| Sidekiq::SortedEntry.new(nil, score, msg) }
 
           render(:erb, File.read(File.join(view_path, "failures.erb")))
@@ -77,6 +77,17 @@ module Sidekiq
         app.post "/failures/all/retry" do
           FailureSet.new.retry_all_failures
           redirect "#{root_path}failures"
+        end
+
+        app.get '/filter/failures' do
+          redirect "#{root_path}failures"
+        end
+
+        app.post '/filter/failures' do
+          @failures = Sidekiq::Failures::FailureSet.new.scan("*#{params[:substr]}*")
+          @current_page = 1
+          @count = @total_size = @failures.size
+          render(:erb, File.read(File.join(view_path, "failures.erb")))
         end
       end
     end
