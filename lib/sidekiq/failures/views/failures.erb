@@ -39,9 +39,9 @@
           <td>
             <a href="<%= root_path %>queues/<%= entry.queue %>"><%= entry.queue %></a>
           </td>
-          <td><%= entry.klass %></td>
+          <td><%= entry.respond_to?(:display_class) ? entry.display_class : entry.klass %></td>
           <td>
-            <div class="args"><%= display_args(entry.args) %></div>
+            <div class="args"><%= display_args(entry.respond_to?(:display_args) ? entry.display_args : entry.args) %></div>
           </td>
           <td style="overflow: auto; padding: 10px;">
             <a class="backtrace" href="#" onclick="$(this).next().toggle(); return false">
