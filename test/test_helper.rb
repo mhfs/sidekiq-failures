@@ -7,8 +7,20 @@ require "minitest/mock"
 
 require "rack/test"
 
-require "celluloid"
 require "sidekiq"
+
+if Sidekiq::VERSION < '4'
+  require 'celluloid'
+else
+  module Celluloid
+    def self.logger=(*); end
+
+    def self.boot; end
+
+    module Thread; end
+  end
+end
+
 require "sidekiq-failures"
 require "sidekiq/processor"
 require "sidekiq/fetch"
