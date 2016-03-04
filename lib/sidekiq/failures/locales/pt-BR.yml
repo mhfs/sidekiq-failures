@@ -1,0 +1,5 @@
+pt-BR:
+  FailedJobs: Processos Falhos
+  FailedAt: Falhou em
+  ResetCounter: Resetar contador
+  NoFailedJobsFound: Nenhum Processo falho encontrado
