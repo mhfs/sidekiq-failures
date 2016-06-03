@@ -1,3 +1,4 @@
+sudo: false
 language: ruby
 services:
   - redis-server
@@ -12,6 +13,7 @@ env:
     - SIDEKIQ_VERSION="~> 2.17"
     - SIDEKIQ_VERSION="~> 3.0"
     - SIDEKIQ_VERSION="~> 3.1"
+    - SIDEKIQ_VERSION="~> 4.0"
 matrix:
   allow_failures:
     - rvm: 1.9.3

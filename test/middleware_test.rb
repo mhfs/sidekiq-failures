@@ -7,6 +7,8 @@ module Sidekiq
         Celluloid.boot
         $invokes = 0
         @boss = MiniTest::Mock.new
+        2.times { @boss.expect(:options, {:queues => ['default'] }, []) } unless Sidekiq::VERSION < '4'
+
         @processor = ::Sidekiq::Processor.new(@boss)
         Sidekiq.server_middleware {|chain| chain.add Sidekiq::Failures::Middleware }
         Sidekiq.redis = REDIS
@@ -44,7 +46,7 @@ module Sidekiq
 
         actor = MiniTest::Mock.new
         actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        actor.expect(:real_thread, nil, [nil, Thread])
         2.times { @boss.expect(:async, actor, []) }
 
         assert_raises TestException do
@@ -62,7 +64,7 @@ module Sidekiq
 
         actor = MiniTest::Mock.new
         actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        actor.expect(:real_thread, nil, [nil, Thread])
         2.times { @boss.expect(:async, actor, []) }
 
         assert_raises TestException do
@@ -80,8 +82,8 @@ module Sidekiq
 
         actor = MiniTest::Mock.new
         actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
-        2.times { @boss.expect(:async, actor, []) }
+        actor.expect(:real_thread, nil, [nil, Thread])
+        2.times { @boss.expect(:async, actor, []) } if Sidekiq::VERSION < '4'
 
         @processor.process(msg)
         @boss.verify
@@ -97,7 +99,7 @@ module Sidekiq
 
         actor = MiniTest::Mock.new
         actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        actor.expect(:real_thread, nil, [nil, Thread])
         2.times { @boss.expect(:async, actor, []) }
 
         assert_raises TestException do
@@ -117,7 +119,7 @@ module Sidekiq
 
         actor = MiniTest::Mock.new
         actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        actor.expect(:real_thread, nil, [nil, Thread])
         2.times { @boss.expect(:async, actor, []) }
 
         assert_raises TestException do
@@ -136,7 +138,7 @@ module Sidekiq
 
         actor = MiniTest::Mock.new
         actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        actor.expect(:real_thread, nil, [nil, Thread])
         2.times { @boss.expect(:async, actor, []) }
 
         assert_raises TestException do
@@ -154,7 +156,7 @@ module Sidekiq
 
         actor = MiniTest::Mock.new
         actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        actor.expect(:real_thread, nil, [nil, Thread])
         2.times { @boss.expect(:async, actor, []) }
 
         assert_raises TestException do
@@ -172,7 +174,7 @@ module Sidekiq
 
         actor = MiniTest::Mock.new
         actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        actor.expect(:real_thread, nil, [nil, Thread])
         2.times { @boss.expect(:async, actor, []) }
 
         assert_raises TestException do
@@ -192,7 +194,7 @@ module Sidekiq
 
         actor = MiniTest::Mock.new
         actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        actor.expect(:real_thread, nil, [nil, Thread])
         2.times { @boss.expect(:async, actor, []) }
 
         assert_raises TestException do
@@ -212,7 +214,7 @@ module Sidekiq
 
         actor = MiniTest::Mock.new
         actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        actor.expect(:real_thread, nil, [nil, Thread])
         2.times { @boss.expect(:async, actor, []) }
 
         assert_raises TestException do
@@ -233,11 +235,12 @@ module Sidekiq
 
         3.times do
           boss = MiniTest::Mock.new
+          2.times { boss.expect(:options, {:queues => ['default'] }, []) } unless Sidekiq::VERSION < '4'
           processor = ::Sidekiq::Processor.new(boss)
 
           actor = MiniTest::Mock.new
           actor.expect(:processor_done, nil, [processor])
-          actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+          actor.expect(:real_thread, nil, [nil, Thread])
           2.times { boss.expect(:async, actor, []) }
 
           assert_raises TestException do
@@ -261,7 +264,7 @@ module Sidekiq
 
         actor = MiniTest::Mock.new
         actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, Celluloid::Thread])
+        actor.expect(:real_thread, nil, [nil, Thread])
         @boss.expect(:async, actor, [])
 
         assert_raises TestException do
