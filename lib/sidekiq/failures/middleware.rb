@@ -80,7 +80,18 @@ module Sidekiq
       end
 
       def retry_middleware
-        @retry_middleware ||= Sidekiq::Middleware::Server::RetryJobs.new
+        # Sidekiq 5.0.0 removes `Sidekiq::Middleware::Server::RetryJobs` so we need 
+        # to use `Sidekiq::JobRetry.new'
+        @retry_middleware ||= if sidekiq_5_0_0?
+          require 'sidekiq/job_retry'
+          Sidekiq::JobRetry.new
+        else
+          Sidekiq::Middleware::Server::RetryJobs.new
+        end
+      end
+
+      def sidekiq_5_0_0?
+        Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new('5.0.0')
       end
 
       def default_max_retries
