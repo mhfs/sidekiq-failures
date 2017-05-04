@@ -7,6 +7,8 @@ require "minitest/mock"
 
 require "rack/test"
 
+$CELLULOID_DEBUG = true
+
 require "celluloid"
 require "sidekiq"
 require "sidekiq-failures"
