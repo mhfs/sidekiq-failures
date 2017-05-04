@@ -67,8 +67,19 @@ end
 
 Sidekiq.configure_server do |config|
   config.server_middleware do |chain|
-    chain.insert_before Sidekiq::Middleware::Server::RetryJobs,
-                        Sidekiq::Failures::Middleware
+    # Supports Ruby 1.9 +
+    # Sidekiq 5.0.0 removes `Sidekiq::Middleware::Server::RetryJobs` so we simple add
+    # the Sidekiq::Failures::Middleware in top of stack
+    if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new('5.0.0')
+      Sidekiq.configure_server do |config|
+        config.server_middleware do |chain|
+          chain.add Sidekiq::Failures::Middleware
+        end
+      end
+    else
+      chain.insert_before Sidekiq::Middleware::Server::RetryJobs,
+                          Sidekiq::Failures::Middleware
+    end
   end
 end
 
