@@ -17,6 +17,8 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency "sidekiq", ">= 2.16.0"
 
+  gem.add_dependency 'redis-namespace'
+  gem.add_development_dependency 'celluloid'
   gem.add_development_dependency "rake"
   gem.add_development_dependency "rack-test"
   gem.add_development_dependency "sprockets"
