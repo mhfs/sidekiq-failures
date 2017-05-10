@@ -47,9 +47,11 @@ module Sidekiq
 
   # Fetches the failures max count value
   def self.failures_max_count
-    return 1000 if @failures_max_count.nil?
-
-    @failures_max_count
+    if !instance_variable_defined?(:@failures_max_count) || @failures_max_count.nil?
+      1000
+    else
+      @failures_max_count
+    end
   end
 
   module Failures

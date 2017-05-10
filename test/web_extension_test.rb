@@ -9,7 +9,13 @@ module Sidekiq
       Sidekiq::Web
     end
 
+    def token
+      @token ||= Rack::Protection::AuthenticityToken.random_token
+    end
+
     before do
+      env 'rack.session', { csrf: token }
+      env 'HTTP_X_CSRF_TOKEN', token
       Sidekiq.redis = REDIS
       Sidekiq.redis {|c| c.flushdb }
     end
@@ -18,21 +24,21 @@ module Sidekiq
       get '/'
 
       last_response.status.must_equal 200
-      last_response.body.must_match /Sidekiq/
-      last_response.body.must_match /Failures/
+      last_response.body.must_match(/Sidekiq/)
+      last_response.body.must_match(/Failures/)
     end
 
     it 'can display failures page without any failures' do
       get '/failures'
       last_response.status.must_equal 200
-      last_response.body.must_match /Failed Jobs/
-      last_response.body.must_match /No failed jobs found/
+      last_response.body.must_match(/Failed Jobs/)
+      last_response.body.must_match(/No failed jobs found/)
     end
 
     it 'has the reset counter form and action' do
       get '/failures'
-      last_response.body.must_match /failures\/all\/reset/
-      last_response.body.must_match /Reset Counter/
+      last_response.body.must_match(/failures\/all\/reset/)
+      last_response.body.must_match(/Reset Counter/)
     end
 
     describe 'when there are failures' do
@@ -46,61 +52,61 @@ module Sidekiq
       end
 
       it 'can display failures page with failures listed' do
-        last_response.body.must_match /Failed Jobs/
-        last_response.body.must_match /HardWorker/
-        last_response.body.must_match /ArgumentError/
-        last_response.body.wont_match /No failed jobs found/
+        last_response.body.must_match(/Failed Jobs/)
+        last_response.body.must_match(/HardWorker/)
+        last_response.body.must_match(/ArgumentError/)
+        last_response.body.wont_match(/No failed jobs found/)
       end
 
       it 'can reset counter' do
         assert_equal failed_count, "1"
 
-        last_response.body.must_match /HardWorker/
+        last_response.body.must_match(/HardWorker/)
 
         post '/failures/all/reset'
         last_response.status.must_equal 302
-        last_response.location.must_match /failures$/
+        last_response.location.must_match(/failures$/)
 
         get '/failures'
         last_response.status.must_equal 200
-        last_response.body.must_match /HardWorker/
+        last_response.body.must_match(/HardWorker/)
 
         assert_equal failed_count, "0"
       end
 
       it 'has the delete all form and action' do
-        last_response.body.must_match /failures\/all\/delete/
-        last_response.body.must_match /Delete All/
+        last_response.body.must_match(/failures\/all\/delete/)
+        last_response.body.must_match(/Delete All/)
       end
 
       it 'can delete all failures' do
         assert_equal failed_count, "1"
 
-        last_response.body.must_match /HardWorker/
+        last_response.body.must_match(/HardWorker/)
 
         post '/failures/all/delete'
         last_response.status.must_equal 302
-        last_response.location.must_match /failures$/
+        last_response.location.must_match(/failures$/)
 
         get '/failures'
         last_response.status.must_equal 200
-        last_response.body.must_match /No failed jobs found/
+        last_response.body.must_match(/No failed jobs found/)
 
         assert_equal failed_count, "1"
       end
 
       it 'has the retry all form and action' do
-        last_response.body.must_match /failures\/all\/retry/
-        last_response.body.must_match /Retry All/
+        last_response.body.must_match(/failures\/all\/retry/)
+        last_response.body.must_match(/Retry All/)
       end
 
       it 'can retry all failures' do
         assert_equal failed_count, "1"
 
-        last_response.body.must_match /HardWorker/
+        last_response.body.must_match(/HardWorker/)
         post '/failures/all/retry'
         last_response.status.must_equal 302
-        last_response.location.must_match /failures/
+        last_response.location.must_match(/failures/)
 
         get '/failures'
         last_response.status.must_equal 200
@@ -110,29 +116,29 @@ module Sidekiq
       it 'can delete failure from the list' do
         assert_equal failed_count, "1"
 
-        last_response.body.must_match /HardWorker/
+        last_response.body.must_match(/HardWorker/)
 
         post '/failures', { :key => [failure_score], :delete => 'Delete' }
         last_response.status.must_equal 302
-        last_response.location.must_match /failures/
+        last_response.location.must_match(/failures/)
 
         get '/failures'
         last_response.status.must_equal 200
-        last_response.body.must_match /No failed jobs found/
+        last_response.body.must_match(/No failed jobs found/)
       end
 
       it 'can retry failure from the list' do
         assert_equal failed_count, "1"
 
-        last_response.body.must_match /HardWorker/
+        last_response.body.must_match(/HardWorker/)
 
         post '/failures', { :key => [failure_score], :retry => 'Retry Now' }
         last_response.status.must_equal 302
-        last_response.location.must_match /failures/
+        last_response.location.must_match(/failures/)
 
         get '/failures'
         last_response.status.must_equal 200
-        last_response.body.must_match /No failed jobs found/
+        last_response.body.must_match(/No failed jobs found/)
       end
     end
 
@@ -147,34 +153,34 @@ module Sidekiq
       end
 
       it 'can display failure page' do
-        last_response.body.must_match /Job/
-        last_response.body.must_match /HardWorker/
-        last_response.body.must_match /ArgumentError/
-        last_response.body.must_match /file1/
+        last_response.body.must_match(/Job/)
+        last_response.body.must_match(/HardWorker/)
+        last_response.body.must_match(/ArgumentError/)
+        last_response.body.must_match(/file1/)
       end
 
       it 'can delete failure' do
-        last_response.body.must_match /HardWorker/
+        last_response.body.must_match(/HardWorker/)
 
         post "/failures/#{failure_score}", :delete => 'Delete'
         last_response.status.must_equal 302
-        last_response.location.must_match /failures/
+        last_response.location.must_match(/failures/)
 
         get "/failures/#{failure_score}"
         last_response.status.must_equal 302
-        last_response.location.must_match /failures/
+        last_response.location.must_match(/failures/)
       end
 
       it 'can retry failure' do
-        last_response.body.must_match /HardWorker/
+        last_response.body.must_match(/HardWorker/)
 
         post "/failures/#{failure_score}", :retry => 'Retry Now'
         last_response.status.must_equal 302
-        last_response.location.must_match /failures/
+        last_response.location.must_match(/failures/)
 
         get "/failures/#{failure_score}"
         last_response.status.must_equal 302
-        last_response.location.must_match /failures/
+        last_response.location.must_match(/failures/)
       end
 
       if defined? Sidekiq::Pro
@@ -195,11 +201,11 @@ module Sidekiq
         end
 
         it 'can escape arguments' do
-          last_response.body.must_match /&quot;&lt;h1&gt;omg&lt;&#x2F;h1&gt;&quot;/
+          last_response.body.must_match(/&quot;&lt;h1&gt;omg&lt;&#x2F;h1&gt;&quot;/)
         end
 
         it 'can escape error message' do
-          last_response.body.must_match /ArgumentError: &lt;p&gt;wow&lt;&#x2F;p&gt;/
+          last_response.body.must_match(/ArgumentError: &lt;p&gt;wow&lt;&#x2F;p&gt;/)
         end
       end
 
@@ -211,7 +217,7 @@ module Sidekiq
 
         it 'should be successful' do
           last_response.status.must_equal 200
-          last_response.body.wont_match /No failed jobs found/
+          last_response.body.wont_match(/No failed jobs found/)
         end
       end
 
@@ -223,7 +229,7 @@ module Sidekiq
 
         it 'should be successful' do
           last_response.status.must_equal 200
-          last_response.body.wont_match /No failed jobs found/
+          last_response.body.wont_match(/No failed jobs found/)
         end
       end
     end
