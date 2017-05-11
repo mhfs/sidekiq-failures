@@ -79,21 +79,13 @@ module Sidekiq
         retry_middleware.send(:retry_attempts_from, msg['retry'], default_max_retries)
       end
 
-      def retry_middleware_class
-        if Sidekiq::VERSION < '5'
-          Sidekiq::Middleware::Server::RetryJobs
-        else
-          Sidekiq::JobRetry
-        end
-      end
-
       def retry_middleware
         @retry_middleware ||=
-          retry_middleware_class.new
+          Sidekiq::Failures.retry_middleware_class.new
       end
 
       def default_max_retries
-        retry_middleware_class::DEFAULT_MAX_RETRY_ATTEMPTS
+        Sidekiq::Failures.retry_middleware_class::DEFAULT_MAX_RETRY_ATTEMPTS
       end
 
       def hostname

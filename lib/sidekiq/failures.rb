@@ -64,12 +64,21 @@ module Sidekiq
     def self.count
       Sidekiq.redis {|r| r.zcard(LIST_KEY) }
     end
+
+    def self.retry_middleware_class
+      if Sidekiq::VERSION < '5'
+        Sidekiq::Middleware::Server::RetryJobs
+      else
+        Sidekiq::JobRetry
+      end
+    end
+
   end
 end
 
 Sidekiq.configure_server do |config|
   config.server_middleware do |chain|
-    chain.insert_before Sidekiq::Middleware::Server::RetryJobs,
+    chain.insert_before Sidekiq::Failures.retry_middleware_class,
                         Sidekiq::Failures::Middleware
   end
 end
