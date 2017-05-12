@@ -5,17 +5,15 @@ module Sidekiq
   describe "WebExtension" do
     include Rack::Test::Methods
 
+    TOKEN = rand(2**128-1).freeze
+
     def app
       Sidekiq::Web
     end
 
-    def token
-      @token ||= Rack::Protection::AuthenticityToken.random_token
-    end
-
     before do
-      env 'rack.session', { csrf: token }
-      env 'HTTP_X_CSRF_TOKEN', token
+      env 'rack.session', { csrf: TOKEN }
+      env 'HTTP_X_CSRF_TOKEN', TOKEN
       Sidekiq.redis = REDIS
       Sidekiq.redis {|c| c.flushdb }
     end
