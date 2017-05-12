@@ -5,6 +5,7 @@ rescue LoadError
 end
 
 require "sidekiq/api"
+require "sidekiq/version"
 require "sidekiq/failures/version"
 require "sidekiq/failures/sorted_entry"
 require "sidekiq/failures/failure_set"
