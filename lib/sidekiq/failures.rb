@@ -12,6 +12,10 @@ require "sidekiq/failures/failure_set"
 require "sidekiq/failures/middleware"
 require "sidekiq/failures/web_extension"
 
+if Sidekiq::VERSION < '5'
+  require "sidekiq/middleware/server/retry_jobs"
+end
+
 module Sidekiq
 
   SIDEKIQ_FAILURES_MODES = [:all, :exhausted, :off].freeze
