@@ -12,10 +12,6 @@ require "sidekiq/failures/failure_set"
 require "sidekiq/failures/middleware"
 require "sidekiq/failures/web_extension"
 
-if Sidekiq::VERSION < '5'
-  require "sidekiq/middleware/server/retry_jobs"
-end
-
 module Sidekiq
 
   SIDEKIQ_FAILURES_MODES = [:all, :exhausted, :off].freeze
@@ -71,10 +67,12 @@ module Sidekiq
     end
 
     def self.retry_middleware_class
-      if Sidekiq::VERSION < '5'
-        Sidekiq::Middleware::Server::RetryJobs
-      else
+      if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new('5.0.0')
+        require 'sidekiq/job_retry'
         Sidekiq::JobRetry
+      else
+        require 'sidekiq/middleware/server/retry_jobs'
+        Sidekiq::Middleware::Server::RetryJobs
       end
     end
 
