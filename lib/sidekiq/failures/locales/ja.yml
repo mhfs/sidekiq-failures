@@ -1,0 +1,6 @@
+# encoding: utf-8
+ja:
+  FailedJobs: 失敗したジョブ
+  FailedAt: 失敗した日時
+  ResetCounter: カウンターをリセット
+  NoFailedJobsFound: 失敗したジョブはありません
