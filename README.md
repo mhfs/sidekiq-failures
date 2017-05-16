@@ -136,7 +136,7 @@ Sidekiq::Failures.reset_failures
 
 ## Dependencies
 
-Depends on Sidekiq >= 2.16.0
+Depends on Sidekiq >= 4.0.0
 
 ## Contributing
 

@@ -80,11 +80,12 @@ module Sidekiq
       end
 
       def retry_middleware
-        @retry_middleware ||= Sidekiq::Middleware::Server::RetryJobs.new
+        @retry_middleware ||=
+          Sidekiq::Failures.retry_middleware_class.new
       end
 
       def default_max_retries
-        Sidekiq::Middleware::Server::RetryJobs::DEFAULT_MAX_RETRY_ATTEMPTS
+        Sidekiq::Failures.retry_middleware_class::DEFAULT_MAX_RETRY_ATTEMPTS
       end
 
       def hostname
