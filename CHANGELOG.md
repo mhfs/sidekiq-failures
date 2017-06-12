@@ -1,5 +1,13 @@
 ## Unreleased
 
+## 1.0.0
+
+  * WebUI improvements (@bbtfr)
+  * Use ActiveJob to display info when available (@dreyks)
+  * New locales (@ryohashimoto @gurgelrenan)
+  * Sidekiq 4 and higher compatibility (@davekrupinski )
+  * Sidekiq 5 fixes (@fidelisrafael)
+
 ## 0.4.5
 
   * Limit error message to 500 symbols (@antonzaytsev)
