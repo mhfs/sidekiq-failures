@@ -14,6 +14,7 @@ Gem::Specification.new do |gem|
   gem.name          = "sidekiq-failures"
   gem.require_paths = ["lib"]
   gem.version       = Sidekiq::Failures::VERSION
+  gem.license       = "MIT"
 
   gem.add_dependency "sidekiq", ">= 4.0.0"
 
