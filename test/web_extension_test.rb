@@ -207,6 +207,18 @@ module Sidekiq
         end
       end
 
+      describe 'when error message is nil' do
+        before do
+          create_sample_failure(args: ['<h1>some args</h1>'], error_message: nil)
+          get '/failures'
+        end
+
+        it 'should be successful' do
+          last_response.status.must_equal 200
+          last_response.body.wont_match(/No failed jobs found/)
+        end
+      end
+
       describe 'with deprecated payload' do
         before do
           create_sample_failure(args: nil, payload: { args: ['bob', 5] })

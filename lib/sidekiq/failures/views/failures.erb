@@ -45,7 +45,7 @@
           </td>
           <td style="overflow: auto; padding: 10px;">
             <a class="backtrace" href="#" onclick="$(this).next().toggle(); return false">
-              <%= h entry['error_class'] %>: <%= h entry['error_message'].size > 500 ? entry['error_message'][0..500] + '...' : entry['error_message'] %>
+              <%= h entry['error_class'] %>: <%= h entry['error_message'] && entry['error_message'].size > 500 ? entry['error_message'][0..500] + '...' : entry['error_message'] %>
             </a>
             <pre style="display: none; background: none; border: 0; width: 100%; max-height: 30em; font-size: 0.8em; white-space: nowrap; overflow: auto;">
               <%= entry['error_backtrace'].join("<br />") if entry['error_backtrace'] %>
