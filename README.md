@@ -100,6 +100,20 @@ class MyWorker
 end
 ```
 
+#### Ignore specific errors
+
+You can choose to skip tracking specific exception types as follows:
+
+```ruby
+class MyWorker
+  include Sidekiq::Worker
+
+  sidekiq_options :ignore => [Timeout::Error]
+
+  def perform; end
+end
+```
+
 #### Change the default mode
 
 You can also change the default of all your workers at once by setting the following
