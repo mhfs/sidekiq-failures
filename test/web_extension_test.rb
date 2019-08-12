@@ -138,6 +138,14 @@ module Sidekiq
         last_response.status.must_equal 200
         last_response.body.must_match(/No failed jobs found/)
       end
+
+      it 'can handle failures with nil error_message' do
+        create_sample_failure(error_message: nil)
+
+        get '/failures'
+
+        last_response.status.must_equal 200
+      end
     end
 
     describe 'when there is failure' do
