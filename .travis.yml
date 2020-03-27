@@ -3,9 +3,6 @@ sudo: false
 cache: bundler
 services:
   - redis-server
-before_install:
-  - gem install bundler
-  - gem update bundler
 rvm:
   - jruby-9.1.6.0
   - 2.2.4

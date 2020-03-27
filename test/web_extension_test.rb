@@ -5,7 +5,7 @@ module Sidekiq
   describe "WebExtension" do
     include Rack::Test::Methods
 
-    TOKEN = rand(2**128-1).freeze
+    TOKEN = SecureRandom.base64(32).freeze
 
     def app
       Sidekiq::Web
