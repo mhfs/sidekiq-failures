@@ -18,6 +18,13 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency "sidekiq", ">= 4.0.0"
 
+  # Redis 4.X is incompatible with Ruby < 2.3, but the Ruby version constraint
+  # wasn't added until 4.1.2, meaning you can get an incompatible version of the
+  # redis gem when running Ruby 2.2 without this constraint.
+  if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("2.3.0")
+    gem.add_dependency "redis", "< 4.0"
+  end
+
   gem.add_development_dependency "minitest"
   gem.add_development_dependency "rake"
   gem.add_development_dependency "rack-test"

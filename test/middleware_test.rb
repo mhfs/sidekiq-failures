@@ -6,7 +6,7 @@ module Sidekiq
       before do
         $invokes = 0
         @boss = MiniTest::Mock.new
-        2.times { @boss.expect(:options, {:queues => ['default'] }, []) }
+        num_options_calls.times { @boss.expect(:options, {:queues => ['default'] }, []) }
         @processor = ::Sidekiq::Processor.new(@boss)
         Sidekiq.server_middleware {|chain| chain.add Sidekiq::Failures::Middleware }
         Sidekiq.redis = REDIS
@@ -232,7 +232,7 @@ module Sidekiq
 
         3.times do
           boss = MiniTest::Mock.new
-          2.times { boss.expect(:options, {:queues => ['default'] }, []) }
+          num_options_calls.times { boss.expect(:options, {:queues => ['default'] }, []) }
           processor = ::Sidekiq::Processor.new(boss)
 
           actor = MiniTest::Mock.new
@@ -277,6 +277,14 @@ module Sidekiq
 
       def create_work(msg)
         Sidekiq::BasicFetch::UnitOfWork.new('default', Sidekiq.dump_json(msg))
+      end
+
+      def num_options_calls
+        if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new('5.0.3')
+          3
+        else
+          2
+        end
       end
     end
   end
