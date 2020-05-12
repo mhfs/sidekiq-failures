@@ -86,7 +86,7 @@ module Sidekiq
         app.post '/filter/failures' do
           @failures = Sidekiq::Failures::FailureSet.new.scan("*#{params[:substr]}*")
           @current_page = 1
-          @count = @total_size = @failures.size
+          @count = @total_size = @failures.count          
           render(:erb, File.read(File.join(view_path, "failures.erb")))
         end
       end
