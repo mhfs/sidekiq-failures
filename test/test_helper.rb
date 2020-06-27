@@ -7,6 +7,7 @@ require "minitest/mock"
 require "rack/test"
 
 require "sidekiq"
+require "sidekiq-pro" if ENV['SIDEKIQ_PRO_VERSION']
 require "sidekiq-failures"
 require "sidekiq/processor"
 require "sidekiq/fetch"
