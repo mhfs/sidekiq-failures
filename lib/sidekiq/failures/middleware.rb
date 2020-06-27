@@ -64,7 +64,7 @@ module Sidekiq
       end
 
       def exhausted?
-        !retriable? || retry_count >= max_retries
+        !retriable? || (retry_count + 1) >= max_retries
       end
 
       def retriable?
