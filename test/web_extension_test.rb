@@ -201,18 +201,35 @@ module Sidekiq
 
     describe 'when there is specific failure' do
       describe 'with unescaped data' do
-        before do
-          create_sample_failure(args: ['<h1>omg</h1>'], error_message: '<p>wow</p>')
-          get '/failures'
-        end
+          before do
+            create_sample_failure(args: ['<h1>omg</h1>'], error_message: '<p>wow</p>')
+          end
 
-        it 'can escape arguments' do
-          last_response.body.must_match(/&quot;&lt;h1&gt;omg&lt;&#x2F;h1&gt;&quot;/)
-        end
+          describe 'failures index' do
+            before do
+              get '/failures'
+            end
+            it 'can escape arguments' do
+              last_response.body.must_match(/&quot;&lt;h1&gt;omg&lt;&#x2F;h1&gt;&quot;/)
+            end
 
-        it 'can escape error message' do
-          last_response.body.must_match(/ArgumentError: &lt;p&gt;wow&lt;&#x2F;p&gt;/)
-        end
+            it 'can escape error message' do
+              last_response.body.must_match(/ArgumentError: &lt;p&gt;wow&lt;&#x2F;p&gt;/)
+            end
+          end
+
+          describe 'failures show' do
+            before do
+              get "/failures/#{failure_score}"
+            end
+            it 'can escape arguments' do
+              last_response.body.must_match(/&lt;p&gt;wow&lt;&#x2F;p&gt;/)
+            end
+
+            it 'can escape error message' do
+              last_response.body.must_match(/ArgumentError/)
+            end
+          end
       end
 
       describe 'with deprecated payload' do
