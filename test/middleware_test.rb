@@ -107,6 +107,24 @@ module Sidekiq
         assert_equal 1, $invokes
       end
 
+      it "doesn't record ignored failure types" do
+        msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'ignored' => [Sidekiq::Failures::TestException], 'failures' => true)
+
+        assert_equal 0, failures_count
+
+        actor = MiniTest::Mock.new
+        actor.expect(:processor_done, nil, [@processor])
+        actor.expect(:real_thread, nil, [nil, nil])
+        2.times { @boss.expect(:async, actor, []) }
+
+        assert_raises TestException do
+          @processor.process(msg)
+        end
+
+        assert_equal 0, failures_count
+        assert_equal 1, $invokes
+      end
+
       it "doesn't record failure if going to be retired again and configured to track exhaustion by default" do
         Sidekiq.failures_default_mode = :exhausted
 
