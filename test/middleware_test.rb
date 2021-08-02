@@ -7,7 +7,7 @@ module Sidekiq
         $invokes = 0
         @boss = MiniTest::Mock.new
         num_options_calls.times { @boss.expect(:options, {:queues => ['default'] }, []) }
-        @processor = ::Sidekiq::Processor.new(@boss)
+        @processor = new_processor(@boss)
         Sidekiq.server_middleware {|chain| chain.add Sidekiq::Failures::Middleware }
         Sidekiq.redis = REDIS
         Sidekiq.redis { |c| c.flushdb }
@@ -83,7 +83,6 @@ module Sidekiq
         actor.expect(:real_thread, nil, [nil, nil])
 
         @processor.process(msg)
-        @boss.verify
 
         assert_equal 0, failures_count
         assert_equal 1, $invokes
@@ -233,7 +232,7 @@ module Sidekiq
         3.times do
           boss = MiniTest::Mock.new
           num_options_calls.times { boss.expect(:options, {:queues => ['default'] }, []) }
-          processor = ::Sidekiq::Processor.new(boss)
+          processor = new_processor(boss)
 
           actor = MiniTest::Mock.new
           actor.expect(:processor_done, nil, [processor])
@@ -284,6 +283,16 @@ module Sidekiq
           3
         else
           2
+        end
+      end
+
+      def new_processor(boss)
+        if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new('6.0')
+          opts = {:queues => ['default']}
+          opts[:fetch] = Sidekiq::BasicFetch.new(opts)
+          ::Sidekiq::Processor.new(boss, opts)
+        else
+          ::Sidekiq::Processor.new(boss)
         end
       end
     end
