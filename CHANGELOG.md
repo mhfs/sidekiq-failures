@@ -1,5 +1,11 @@
 ## Unreleased
 
+## 1.0.1
+
+  * Add license config to the gemspec (#115 @reiz)
+  * Guard against failure error_message being `nil` (#122 @mcasper)
+  * Fix filtering failures with 0 results on Sidekiq Pro (#125 @substars)
+
 ## 1.0.0
 
   * WebUI improvements (@bbtfr)
