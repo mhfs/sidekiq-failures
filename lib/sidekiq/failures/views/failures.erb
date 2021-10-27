@@ -81,5 +81,5 @@
 <% end %>
 <form action="<%= root_path %>failures/all/reset" method="post">
   <%= csrf_tag if respond_to?(:csrf_tag) %>
-  <input class="btn btn-danger btn-xs pull-right" type="submit" name="reset" value="<%= t('Reset Counter') %>" data-confirm="<%= t('AreYouSure') %>" />
+  <input class="btn btn-danger btn-xs pull-right" type="submit" name="reset" value="<%= t('ResetCounter') %>" data-confirm="<%= t('AreYouSure') %>" />
 </form>
