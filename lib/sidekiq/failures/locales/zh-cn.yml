@@ -1,0 +1,5 @@
+zh-cn:
+  FailedJobs: 失败的任务
+  FailedAt: 失败时间
+  ResetCounter: 重置计数器
+  NoFailedJobsFound: 没有发现失败的任务
