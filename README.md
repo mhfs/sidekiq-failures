@@ -20,6 +20,15 @@ gem 'sidekiq-failures'
 Simply having the gem in your Gemfile is enough to get you started. Your failed
 jobs will be visible via a Failures tab in the Web UI.
 
+If you have not previously used the Web UI, it is a part of the Sidekiq gem. Here is an example to use in a Rails development environment:
+
+```ruby
+if Rails.env.development?
+  require 'sidekiq/web'
+  mount Sidekiq::Web => '/admin/sidekiq'
+end
+```
+
 ## Configuring
 
 ### Maximum Tracked Failures
