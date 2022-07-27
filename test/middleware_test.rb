@@ -287,8 +287,20 @@ module Sidekiq
       end
 
       def new_processor(boss)
-        if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new('6.0')
-          opts = {:queues => ['default']}
+        version = Gem::Version.new(Sidekiq::VERSION)
+
+        if version >= Gem::Version.new('6.4.0')
+          config = Sidekiq
+          config[:queues] = ['default']
+          config[:fetch] = Sidekiq::BasicFetch.new(config)
+          config[:error_handlers] << Sidekiq.method(:default_error_handler)
+          ::Sidekiq::Processor.new(config) do |processor, reason = nil|
+            puts "Oh hey, I got here"
+          end
+        elsif version >= Gem::Version.new('6.0')
+          opts = {
+            queues: ['default'],
+          }
           opts[:fetch] = Sidekiq::BasicFetch.new(opts)
           ::Sidekiq::Processor.new(boss, opts)
         else
