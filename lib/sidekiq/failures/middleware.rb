@@ -81,7 +81,7 @@ module Sidekiq
 
       def retry_middleware
         @retry_middleware ||=
-          Sidekiq::Failures.retry_middleware_class.new
+          Sidekiq::Failures.retry_middleware_class.new({})
       end
 
       def default_max_retries
