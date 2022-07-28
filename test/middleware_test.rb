@@ -1,17 +1,70 @@
 require "test_helper"
 
+class SidekiqPre6
+  def new_processor(boss)
+    num_options_calls.times { boss.expect(:options, {:queues => ['default'] }, []) }
+    ::Sidekiq::Processor.new(boss)
+  end
+
+  private
+
+  def num_options_calls
+    if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new('5.0.3')
+      3
+    else
+      2
+    end
+  end
+end
+
+class SidekiqPre63
+  def new_processor(boss)
+    opts = {
+      queues: ['default'],
+    }
+    opts[:fetch] = Sidekiq::BasicFetch.new(opts)
+    ::Sidekiq::Processor.new(boss, opts)
+  end
+end
+
+class SidekiqPost63
+  def new_processor(boss)
+    config = Sidekiq
+    config[:queues] = ['default']
+    config[:fetch] = Sidekiq::BasicFetch.new(config)
+    config[:error_handlers] << Sidekiq.method(:default_error_handler)
+    ::Sidekiq::Processor.new(config) { |processor, reason = nil| }
+  end
+end
+
 module Sidekiq
   module Failures
     describe "Middleware" do
+      def new_provider
+        version = Gem::Version.new(Sidekiq::VERSION)
+        if version >= Gem::Version.new('6.4.0')
+          SidekiqPost63
+        elsif version >= Gem::Version.new('6.0')
+          SidekiqPre63
+        else
+          SidekiqPre6
+        end.new
+      end
+
       before do
         $invokes = 0
         @boss = MiniTest::Mock.new
-        num_options_calls.times { @boss.expect(:options, {:queues => ['default'] }, []) }
-        @processor = new_processor(@boss)
+        @provider = new_provider
+        @processor = @provider.new_processor(@boss)
+
         Sidekiq.server_middleware {|chain| chain.add Sidekiq::Failures::Middleware }
         Sidekiq.redis = REDIS
         Sidekiq.redis { |c| c.flushdb }
         Sidekiq.instance_eval { @failures_default_mode = nil }
+      end
+
+      after do
+        @boss.verify
       end
 
       TestException = Class.new(Exception)
@@ -42,11 +95,6 @@ module Sidekiq
 
         assert_equal 0, failures_count
 
-        actor = MiniTest::Mock.new
-        actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, nil])
-        2.times { @boss.expect(:async, actor, []) }
-
         assert_raises TestException do
           @processor.process(msg)
         end
@@ -59,11 +107,6 @@ module Sidekiq
         msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'failures' => true)
 
         assert_equal 0, failures_count
-
-        actor = MiniTest::Mock.new
-        actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, nil])
-        2.times { @boss.expect(:async, actor, []) }
 
         assert_raises TestException do
           @processor.process(msg)
@@ -78,10 +121,6 @@ module Sidekiq
 
         assert_equal 0, failures_count
 
-        actor = MiniTest::Mock.new
-        actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, nil])
-
         @processor.process(msg)
 
         assert_equal 0, failures_count
@@ -92,11 +131,6 @@ module Sidekiq
         msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'failures' => false)
 
         assert_equal 0, failures_count
-
-        actor = MiniTest::Mock.new
-        actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, nil])
-        2.times { @boss.expect(:async, actor, []) }
 
         assert_raises TestException do
           @processor.process(msg)
@@ -113,11 +147,6 @@ module Sidekiq
 
         assert_equal 0, failures_count
 
-        actor = MiniTest::Mock.new
-        actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, nil])
-        2.times { @boss.expect(:async, actor, []) }
-
         assert_raises TestException do
           @processor.process(msg)
         end
@@ -132,11 +161,6 @@ module Sidekiq
 
         assert_equal 0, failures_count
 
-        actor = MiniTest::Mock.new
-        actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, nil])
-        2.times { @boss.expect(:async, actor, []) }
-
         assert_raises TestException do
           @processor.process(msg)
         end
@@ -150,11 +174,6 @@ module Sidekiq
 
         assert_equal 0, failures_count
 
-        actor = MiniTest::Mock.new
-        actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, nil])
-        2.times { @boss.expect(:async, actor, []) }
-
         assert_raises TestException do
           @processor.process(msg)
         end
@@ -167,11 +186,6 @@ module Sidekiq
         msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'retry' => false, 'failures' => 'exhausted')
 
         assert_equal 0, failures_count
-
-        actor = MiniTest::Mock.new
-        actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, nil])
-        2.times { @boss.expect(:async, actor, []) }
 
         assert_raises TestException do
           @processor.process(msg)
@@ -188,11 +202,6 @@ module Sidekiq
 
         assert_equal 0, failures_count
 
-        actor = MiniTest::Mock.new
-        actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, nil])
-        2.times { @boss.expect(:async, actor, []) }
-
         assert_raises TestException do
           @processor.process(msg)
         end
@@ -207,11 +216,6 @@ module Sidekiq
         msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'retry' => true, 'retry_count' => 25)
 
         assert_equal 0, failures_count
-
-        actor = MiniTest::Mock.new
-        actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, nil])
-        2.times { @boss.expect(:async, actor, []) }
 
         assert_raises TestException do
           @processor.process(msg)
@@ -231,17 +235,13 @@ module Sidekiq
 
         3.times do
           boss = MiniTest::Mock.new
-          num_options_calls.times { boss.expect(:options, {:queues => ['default'] }, []) }
-          processor = new_processor(boss)
-
-          actor = MiniTest::Mock.new
-          actor.expect(:processor_done, nil, [processor])
-          actor.expect(:real_thread, nil, [nil, nil])
-          2.times { boss.expect(:async, actor, []) }
+          processor = @provider.new_processor(boss)
 
           assert_raises TestException do
             processor.process(msg)
           end
+
+          boss.verify
         end
 
         assert_equal 2, failures_count
@@ -258,11 +258,6 @@ module Sidekiq
 
         assert_equal 0, Sidekiq::Failures.count
 
-        actor = MiniTest::Mock.new
-        actor.expect(:processor_done, nil, [@processor])
-        actor.expect(:real_thread, nil, [nil, nil])
-        @boss.expect(:async, actor, [])
-
         assert_raises TestException do
           @processor.process(msg)
         end
@@ -276,24 +271,6 @@ module Sidekiq
 
       def create_work(msg)
         Sidekiq::BasicFetch::UnitOfWork.new('default', Sidekiq.dump_json(msg))
-      end
-
-      def num_options_calls
-        if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new('5.0.3')
-          3
-        else
-          2
-        end
-      end
-
-      def new_processor(boss)
-        if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new('6.0')
-          opts = {:queues => ['default']}
-          opts[:fetch] = Sidekiq::BasicFetch.new(opts)
-          ::Sidekiq::Processor.new(boss, opts)
-        else
-          ::Sidekiq::Processor.new(boss)
-        end
       end
     end
   end
