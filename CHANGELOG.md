@@ -1,5 +1,9 @@
 ## Unreleased
 
+## 1.0.2
+
+  * Pass now required argument to Sidekiq's JobRetry.new (#140 @mcasper)
+
 ## 1.0.1
 
   * Add license config to the gemspec (#115 @reiz)
