@@ -35,7 +35,9 @@
               <input type='checkbox' name='key[]' value='<%= job_params(entry.item, entry.score) %>' />
             </label>
           </td>
-          <td><a href="<%= root_path %>failures/<%= job_params(entry.item, entry.score) %>"><%= safe_relative_time(entry['failed_at']) %></a></td>
+          <td>
+            <a href="<%= root_path %>failures/<%= job_params(entry.item, entry.score) %>"><%= safe_relative_time(entry['failed_at']) %></a>
+          </td>
           <td>
             <a href="<%= root_path %>queues/<%= entry.queue %>"><%= entry.queue %></a>
           </td>
@@ -44,7 +46,7 @@
             <div class="args"><%= display_args(entry.respond_to?(:display_args) ? entry.display_args : entry.args) %></div>
           </td>
           <td style="overflow: auto; padding: 10px;">
-            <a class="backtrace" href="#" onclick="$(this).next().toggle(); return false">
+            <a class="backtrace" href="javascript:void(0)", onclick="toggle_error_backtrace(this)">
               <%= h entry['error_class'] %>: <%= h entry['error_message'].to_s.size > 500 ? entry['error_message'][0..500] + '...' : entry['error_message'] %>
             </a>
             <pre style="display: none; background: none; border: 0; width: 100%; max-height: 30em; font-size: 0.8em; white-space: nowrap; overflow: auto;">
@@ -76,6 +78,24 @@
     </div>
   <% end %>
 
+  <script>
+  function toggle_error_backtrace(e) {
+    let x = e.nextElementSibling;
+    if (x.style.display === "none") {
+      x.style.display = "block";
+    } else {
+      x.style.display = "none";
+    }
+  }
+  </script>
+
+  <style type="text/css">
+  @media only screen and (prefers-color-scheme: dark) {
+    pre {
+      color: white
+    }
+  }
+  </style>
 <% else %>
   <div class="alert alert-success"><%= t('NoFailedJobsFound') %></div>
 <% end %>
