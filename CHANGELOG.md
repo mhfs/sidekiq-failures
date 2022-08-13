@@ -1,5 +1,9 @@
 ## Unreleased
 
+## 1.0.3
+
+  * Expand failure descriptions with pure JS (#141 @icyleaf)
+
 ## 1.0.2
 
   * Pass now required argument to Sidekiq's JobRetry.new (#140 @mcasper)
