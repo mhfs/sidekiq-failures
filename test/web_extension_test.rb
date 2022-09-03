@@ -201,17 +201,36 @@ module Sidekiq
 
     describe 'when there is specific failure' do
       describe 'with unescaped data' do
-        before do
-          create_sample_failure(args: ['<h1>omg</h1>'], error_message: '<p>wow</p>')
-          get '/failures'
+        describe 'the index page' do
+          before do
+            create_sample_failure(args: ['<h1>omg</h1>'], error_message: '<p>wow</p>')
+            get '/failures'
+          end
+
+          it 'can escape arguments' do
+            _(last_response.body).must_match(/&quot;&lt;h1&gt;omg&lt;&#x2F;h1&gt;&quot;/)
+          end
+
+          it 'can escape error message' do
+            _(last_response.body).must_match(/ArgumentError: &lt;p&gt;wow&lt;&#x2F;p&gt;/)
+          end
         end
 
-        it 'can escape arguments' do
-          _(last_response.body).must_match(/&quot;&lt;h1&gt;omg&lt;&#x2F;h1&gt;&quot;/)
-        end
+        describe 'the details page' do
+          before do
+            failure = create_sample_failure(args: ['<h1>omg</h1>'], error_message: '<p>wow</p>')
+            get "/failures/#{failure[:jid]}"
+          end
 
-        it 'can escape error message' do
-          _(last_response.body).must_match(/ArgumentError: &lt;p&gt;wow&lt;&#x2F;p&gt;/)
+          it 'can escape arguments' do
+            _(last_response.status).must_equal 200
+            _(last_response.body).must_match(/<th>Error Message<\/th>\n      <td>&lt;p&gt;wow&lt;&#x2F;p&gt;<\/td>/)
+          end
+
+          it 'can escape error message' do
+            _(last_response.status).must_equal 200
+            _(last_response.body).must_match(/<th>Error Message<\/th>\n      <td>&lt;p&gt;wow&lt;&#x2F;p&gt;<\/td>/)
+          end
         end
       end
 
@@ -259,6 +278,8 @@ module Sidekiq
           c.set("stat:failed", 1)
         end
       end
+
+      data
     end
 
     def failed_count

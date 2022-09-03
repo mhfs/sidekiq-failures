@@ -6,12 +6,12 @@
     <tr>
       <th><%= t('ErrorClass') %></th>
       <td>
-        <code><%= @failure['error_class'] %></code>
+        <code><%= h @failure['error_class'] %></code>
       </td>
     </tr>
     <tr>
       <th><%= t('ErrorMessage') %></th>
-      <td><%= @failure['error_message'] %></td>
+      <td><%= h @failure['error_message'] %></td>
     </tr>
     <% if !@failure['error_backtrace'].nil? %>
       <tr>
