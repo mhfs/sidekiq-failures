@@ -1,5 +1,9 @@
 ## Unreleased
 
+## 1.0.4
+
+  * Sanitize failure text on the failure details page (#144 @mcasper)
+
 ## 1.0.3
 
   * Expand failure descriptions with pure JS (#141 @icyleaf)
