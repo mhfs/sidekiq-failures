@@ -127,13 +127,18 @@ influenced by `failures_max_count`.
 Sidekiq::Failures.count
 ```
 
-### Reset Failures
+### Reset and clear Failures
 
 Gives a convenient way of reseting Sidekiq Failure stored failed jobs programmatically.
-Takes an options hash and if the `counter` key is present also resets Sidekiq own failed stats.
 
 ```ruby
-Sidekiq::Failures.reset_failures
+Sidekiq::Failures.clear_failures
+```
+
+To reset Sidekiq own failed *stats*.
+
+```ruby
+Sidekiq::Failures.reset_failure_count
 ```
 
 ## Dependencies

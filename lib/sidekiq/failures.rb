@@ -59,7 +59,17 @@ module Sidekiq
     LIST_KEY = :failed
 
     def self.reset_failures
+      warn "NOTE: Sidekiq::Failures.reset_failures is deprecated; use Sidekiq::Failures.reset_failure_count instead."
+
+      reset_failure_count
+    end
+
+    def self.reset_failure_count
       Sidekiq.redis { |c| c.set("stat:failed", 0) }
+    end
+
+    def self.clear_failures
+      FailureSet.new.clear
     end
 
     def self.count
