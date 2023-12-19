@@ -15,4 +15,4 @@ require "sidekiq/cli"
 
 Sidekiq.logger.level = Logger::ERROR
 
-REDIS = Sidekiq::RedisConnection.create(url: "redis://localhost/15")
+REDIS = Sidekiq::RedisConnection.create(url: "redis://127.0.0.1:6379/0")

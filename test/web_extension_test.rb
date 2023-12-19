@@ -14,8 +14,7 @@ module Sidekiq
     before do
       env 'rack.session', { csrf: TOKEN }
       env 'HTTP_X_CSRF_TOKEN', TOKEN
-      Sidekiq.redis = REDIS
-      Sidekiq.redis {|c| c.flushdb }
+      Sidekiq.redis(&:flushdb)
     end
 
     it 'can display home with failures tab' do

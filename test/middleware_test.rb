@@ -29,11 +29,12 @@ end
 
 class SidekiqPost63
   def new_processor(boss)
-    config = Sidekiq
-    config[:queues] = ['default']
-    config[:fetch] = Sidekiq::BasicFetch.new(config)
-    config[:error_handlers] << Sidekiq.method(:default_error_handler)
-    ::Sidekiq::Processor.new(config) { |processor, reason = nil| }
+    configSidekiq = Sidekiq.configure_server do |config|
+      config.capsule('unsafe') do |cap|
+        cap.queues = %w[default]
+      end
+    end
+    ::Sidekiq::Processor.new(configSidekiq) { |processor, reason = nil| }
   end
 end
 
@@ -53,13 +54,16 @@ module Sidekiq
 
       before do
         $invokes = 0
-        @boss = MiniTest::Mock.new
+        @boss = Minitest::Mock.new
         @provider = new_provider
         @processor = @provider.new_processor(@boss)
 
-        Sidekiq.server_middleware {|chain| chain.add Sidekiq::Failures::Middleware }
-        Sidekiq.redis = REDIS
-        Sidekiq.redis { |c| c.flushdb }
+        Sidekiq.configure_server do |config|
+          config.server_middleware do |chain|
+            chain.add Sidekiq::Failures::Middleware
+          end
+        end
+        Sidekiq.redis(&:flushdb)
         Sidekiq.instance_eval { @failures_default_mode = nil }
       end
 
@@ -155,7 +159,6 @@ module Sidekiq
         assert_equal 1, $invokes
       end
 
-
       it "doesn't record failure if going to be retired again and configured to track exhaustion" do
         msg = create_work('class' => MockWorker.to_s, 'args' => ['myarg'], 'retry' => true, 'failures' => 'exhausted')
 
@@ -234,7 +237,7 @@ module Sidekiq
         assert_equal 0, failures_count
 
         3.times do
-          boss = MiniTest::Mock.new
+          boss = Minitest::Mock.new
           processor = @provider.new_processor(boss)
 
           assert_raises TestException do
