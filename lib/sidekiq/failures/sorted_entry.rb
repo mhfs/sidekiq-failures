@@ -11,7 +11,7 @@ module Sidekiq
 
     def retry_failure
       Sidekiq.redis do |conn|
-        results = conn.zrangebyscore(Sidekiq::Failures::LIST_KEY, score, score)
+        results = conn.zrange(Sidekiq::Failures::LIST_KEY, score, score, "BYSCORE")
         conn.zremrangebyscore(Sidekiq::Failures::LIST_KEY, score, score)
         results.map do |message|
           msg = Sidekiq.load_json(message)

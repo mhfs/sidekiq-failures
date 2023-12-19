@@ -65,7 +65,7 @@ module Sidekiq
         end
 
         app.post "/failures/all/reset" do
-          Sidekiq::Failures.reset_failures
+          Sidekiq::Failures.reset_failure_count
           redirect "#{root_path}failures"
         end
 
@@ -86,7 +86,7 @@ module Sidekiq
         app.post '/filter/failures' do
           @failures = Sidekiq::Failures::FailureSet.new.scan("*#{params[:substr]}*")
           @current_page = 1
-          @count = @total_size = @failures.count          
+          @count = @total_size = @failures.count
           render(:erb, File.read(File.join(view_path, "failures.erb")))
         end
       end
