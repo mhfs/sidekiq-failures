@@ -29,12 +29,12 @@ end
 
 class SidekiqPost63
   def new_processor(boss)
-    configSidekiq = Sidekiq.configure_server do |config|
+    config_sidekiq = Sidekiq.configure_server do |config|
       config.capsule('unsafe') do |cap|
         cap.queues = %w[default]
       end
     end
-    ::Sidekiq::Processor.new(configSidekiq) { |processor, reason = nil| }
+    ::Sidekiq::Processor.new(config_sidekiq) { |processor, reason = nil| }
   end
 end
 
