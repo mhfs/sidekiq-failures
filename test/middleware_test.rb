@@ -30,9 +30,9 @@ end
 class SidekiqPost63
   def new_processor(boss)
     sidekiq_config = Sidekiq.configure_server do |config|
-      config.capsule('unsafe') do |cap|
-        cap.queues = %w[default]
-      end
+      config[:queues] = ['default']
+      config[:fetch] = Sidekiq::BasicFetch.new(config)
+      config[:error_handlers] << Sidekiq.method(:default_error_handler)
     end
     ::Sidekiq::Processor.new(sidekiq_config) { |processor, reason = nil| }
   end
