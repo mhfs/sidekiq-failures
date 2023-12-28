@@ -67,7 +67,7 @@ module Sidekiq
         end
 
         app.post "/failures/all/reset" do
-          Sidekiq::Failures.reset_failures
+          Sidekiq::Failures.reset_failure_count
           redirect "#{root_path}failures"
         end
 
