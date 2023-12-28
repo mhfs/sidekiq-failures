@@ -7,6 +7,8 @@ module Sidekiq
 
         app.helpers do
           def safe_relative_time(time)
+            return unless time
+
             time = if time.is_a?(Numeric)
               Time.at(time)
             else
