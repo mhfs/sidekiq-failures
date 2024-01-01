@@ -10,7 +10,7 @@ module Sidekiq
       rescue Sidekiq::Shutdown
         raise
       rescue Exception => e
-        raise e if skip_failure?
+        raise e if skip_failure?(e)
 
         msg['error_message'] = e.message
         msg['error_class'] = e.class.name
@@ -46,8 +46,14 @@ module Sidekiq
         failure_mode == :exhausted
       end
 
-      def skip_failure?
-        failure_mode_off? || failure_mode_exhausted? && !exhausted?
+      def skip_failure?(e=nil)
+        skip_exception_type(e) || failure_mode_off? || failure_mode_exhausted? && !exhausted?
+      end
+
+      def skip_exception_type(exception)
+        return false if exception.nil?
+        ignored = msg['ignored'] || []
+        ignored.any?{|i| exception.is_a?(Object.const_get(i, false))}
       end
 
       def failure_mode
