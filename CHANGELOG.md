@@ -61,8 +61,8 @@
 ## 0.3.0
 
   * Bump sidekiq dependency to sidekiq >= 2.14.0
-  * Remove slim templates and dependecy
-  * Escape exception info when outputing to html
+  * Remove slim templates and dependency
+  * Escape exception info when outputting to html
   * Add `Sidekiq::Failures.reset_failures` helper method
   * Add `Sidekiq::Failures.count` helper method (@zanker)
   * Adhere to sidekiq approach of showing UTC times
@@ -85,8 +85,8 @@
   * Added processor identity to failure data (@krasnoukhov)
   * Handle Sidekiq::Shutdown exceptions (@krasnoukhov)
   * Add failures maximum count option (@mathieulaporte)
-  * User Expception#message instead of Exception#to_s (@supaspoida)
-  * Removed web depencies (@LongMan)
+  * User Exception#message instead of Exception#to_s (@supaspoida)
+  * Removed web dependencies (@LongMan)
   * Stop overloading find_template (@zquestz)
 
 ## 0.1.0

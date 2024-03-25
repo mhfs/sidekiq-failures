@@ -129,7 +129,7 @@ Sidekiq::Failures.count
 
 ### Reset and clear Failures
 
-Gives a convenient way of reseting Sidekiq Failure stored failed jobs programmatically.
+Gives a convenient way of resetting Sidekiq Failure stored failed jobs programmatically.
 
 ```ruby
 Sidekiq::Failures.clear_failures
