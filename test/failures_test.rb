@@ -3,7 +3,7 @@ require "test_helper"
 module Sidekiq
   describe Failures do
     describe '.retry_middleware_class' do
-      it 'returns based on Sidekiq::VERISON' do
+      it 'returns based on Sidekiq::VERSION' do
         case Sidekiq::VERSION[0]
         when '5'
           assert_equal Failures.retry_middleware_class, Sidekiq::JobRetry
