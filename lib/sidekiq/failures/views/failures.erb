@@ -1,14 +1,10 @@
-<header class="row">
-  <div class="col-sm-5">
-    <h3><%= t('FailedJobs') %></h3>
-  </div>
+<div class="header-container">
+  <h1><%= t('FailedJobs') %></h1>
   <% if @failures.count > 0 && @total_size > @count %>
-    <div class="col-sm-4">
-      <%= erb :_paging, :locals => { :url => "#{root_path}failures" } %>
-    </div>
+    <%= erb :_paging, :locals => { :url => "#{root_path}failures" } %>
   <% end %>
   <%= filtering('failures') if respond_to?(:filtering) %>
-</header>
+</div>
 
 <% if @failures.count > 0 %>
   <form action="<%= root_path %>failures" method="post">
