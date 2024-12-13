@@ -191,7 +191,7 @@ module Sidekiq
       if defined? Sidekiq::Pro
         it 'can filter failure' do
           create_sample_failure
-          post '/filter/failures', substr: 'new'
+          get '/failures', substr: 'new'
 
           _(last_response.status).must_equal 200
         end
