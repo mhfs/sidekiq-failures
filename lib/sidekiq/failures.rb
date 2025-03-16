@@ -13,7 +13,6 @@ require "sidekiq/failures/middleware"
 require "sidekiq/failures/web_extension"
 
 module Sidekiq
-
   SIDEKIQ_FAILURES_MODES = [:all, :exhausted, :off].freeze
 
   # Sets the default failure tracking mode.
@@ -73,31 +72,32 @@ module Sidekiq
     end
 
     def self.count
-      Sidekiq.redis {|r| r.zcard(LIST_KEY) }
+      Sidekiq.redis { |r| r.zcard(LIST_KEY) }
     end
 
     def self.retry_middleware_class
-      if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new('5.0.0')
-        require 'sidekiq/job_retry'
+      if Gem::Version.new(Sidekiq::VERSION) >= Gem::Version.new("5.0.0")
+        require "sidekiq/job_retry"
         Sidekiq::JobRetry
       else
-        require 'sidekiq/middleware/server/retry_jobs'
+        require "sidekiq/middleware/server/retry_jobs"
         Sidekiq::Middleware::Server::RetryJobs
       end
     end
-
   end
 end
 
 Sidekiq.configure_server do |config|
   config.server_middleware do |chain|
     chain.insert_before Sidekiq::Failures.retry_middleware_class,
-                        Sidekiq::Failures::Middleware
+      Sidekiq::Failures::Middleware
   end
 end
 
 if defined?(Sidekiq::Web)
-  Sidekiq::Web.register Sidekiq::Failures::WebExtension
-  Sidekiq::Web.tabs["Failures"] = "failures"
-  Sidekiq::Web.settings.locales << File.join(File.dirname(__FILE__), "failures/locales")
+  Sidekiq::Web.configure do |config|
+    config.register(Sidekiq::Failures::WebExtension, name: "failures", tab: "Failures", index: "failures/")
+  end
+  # Sidekiq::Web.tabs["Failures"] = "failures"
+  # Sidekiq::Web.settings.locales << File.join(File.dirname(__FILE__), "failures/locales")
 end
