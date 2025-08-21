@@ -97,7 +97,14 @@ Sidekiq.configure_server do |config|
 end
 
 if defined?(Sidekiq::Web)
-  Sidekiq::Web.register Sidekiq::Failures::WebExtension
-  Sidekiq::Web.tabs["Failures"] = "failures"
-  Sidekiq::Web.settings.locales << File.join(File.dirname(__FILE__), "failures/locales")
+  if Sidekiq::Failures::WebExtension.legacy_sidekiq?
+    Sidekiq::Web.register Sidekiq::Failures::WebExtension
+    Sidekiq::Web.tabs["Failures"] = "failures"
+    Sidekiq::Web.settings.locales << File.join(File.dirname(__FILE__), "failures/locales")
+  else
+    Sidekiq::Web.configure do |config|
+      config.locales << File.join(File.dirname(__FILE__), "failures/locales")
+      config.register(Sidekiq::Failures::WebExtension, name: "failures", tab: ["Failures"], index: ["failures"])
+    end
+  end
 end

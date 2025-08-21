@@ -1,0 +1,31 @@
+<%= erb :_job_info, :locals => {:job => @failure, :type => :failure} %>
+
+<h3><%= t('Error') %></h3>
+<table class="error table table-bordered table-striped">
+  <tbody>
+    <tr>
+      <th><%= t('ErrorClass') %></th>
+      <td>
+        <code><%= h @failure['error_class'] %></code>
+      </td>
+    </tr>
+    <tr>
+      <th><%= t('ErrorMessage') %></th>
+      <td><%= h @failure['error_message'] %></td>
+    </tr>
+    <% if !@failure['error_backtrace'].nil? %>
+      <tr>
+        <th><%= t('ErrorBacktrace') %></th>
+        <td>
+          <code><%= @failure['error_backtrace'].join("<br/>") %></code>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<form class="form-horizontal" action="<%= root_path %>failures/<%= job_params(@failure, @failure.score) %>" method="post">
+  <%= csrf_tag if respond_to?(:csrf_tag) %>
+  <a class="btn" href="<%= root_path %>failures"><%= t('GoBack') %></a>
+  <input class="btn btn-primary" type="submit" name="retry" value="<%= t('RetryNow') %>" />
+  <input class="btn btn-danger" type="submit" name="delete" value="<%= t('Delete') %>" />
+</form>

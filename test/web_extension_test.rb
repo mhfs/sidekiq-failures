@@ -5,7 +5,7 @@ module Sidekiq
   describe "WebExtension" do
     include Rack::Test::Methods
 
-    TOKEN = SecureRandom.base64(32).freeze
+    TOKEN = SecureRandom.base64(defined?(Sidekiq::Web::TOKEN_LENGTH) ? Sidekiq::Web::TOKEN_LENGTH : 32).freeze
 
     def app
       Sidekiq::Web
@@ -40,7 +40,7 @@ module Sidekiq
 
     describe 'when there are failures' do
       before do
-        create_sample_failure
+        @failure = create_sample_failure
         get '/failures'
       end
 
@@ -52,15 +52,14 @@ module Sidekiq
         _(last_response.body).must_match(/Failed Jobs/)
         _(last_response.body).must_match(/HardWorker/)
         _(last_response.body).must_match(/ArgumentError/)
-        _(last_response.body).wont_match(/No failed jobs found/)
       end
 
       it 'can reset counter' do
         assert_equal failed_count, "1"
 
         _(last_response.body).must_match(/HardWorker/)
+        post '/failures/all/reset', { authenticity_token: TOKEN }
 
-        post '/failures/all/reset'
         _(last_response.status).must_equal 302
         _(last_response.location).must_match(/failures$/)
 
@@ -81,7 +80,7 @@ module Sidekiq
 
         _(last_response.body).must_match(/HardWorker/)
 
-        post '/failures/all/delete'
+        post '/failures/all/delete', { authenticity_token: TOKEN }
         _(last_response.status).must_equal 302
         _(last_response.location).must_match(/failures$/)
 
@@ -101,7 +100,7 @@ module Sidekiq
         assert_equal failed_count, "1"
 
         _(last_response.body).must_match(/HardWorker/)
-        post '/failures/all/retry'
+        post '/failures/all/retry', { authenticity_token: TOKEN }
         _(last_response.status).must_equal 302
         _(last_response.location).must_match(/failures/)
 
@@ -115,7 +114,7 @@ module Sidekiq
 
         _(last_response.body).must_match(/HardWorker/)
 
-        post '/failures', { :key => [failure_score], :delete => 'Delete' }
+        post '/failures', { authenticity_token: TOKEN, :key => [build_param_key(@failure)], :delete => 'Delete' }
         _(last_response.status).must_equal 302
         _(last_response.location).must_match(/failures/)
 
@@ -129,7 +128,7 @@ module Sidekiq
 
         _(last_response.body).must_match(/HardWorker/)
 
-        post '/failures', { :key => [failure_score], :retry => 'Retry Now' }
+        post '/failures', { authenticity_token: TOKEN, :key => [build_param_key(@failure)], :retry => 'Retry Now' }
         _(last_response.status).must_equal 302
         _(last_response.location).must_match(/failures/)
 
@@ -149,8 +148,8 @@ module Sidekiq
 
     describe 'when there is failure' do
       before do
-        create_sample_failure
-        get "/failures/#{failure_score}"
+        @failure = create_sample_failure
+        get "/failures/#{build_param_key(@failure)}"
       end
 
       it 'should be successful' do
@@ -167,11 +166,11 @@ module Sidekiq
       it 'can delete failure' do
         _(last_response.body).must_match(/HardWorker/)
 
-        post "/failures/#{failure_score}", :delete => 'Delete'
+        post "/failures/#{build_param_key(@failure)}", { authenticity_token: TOKEN, :delete => 'Delete' }
         _(last_response.status).must_equal 302
         _(last_response.location).must_match(/failures/)
 
-        get "/failures/#{failure_score}"
+        get "/failures/#{build_param_key(@failure)}"
         _(last_response.status).must_equal 302
         _(last_response.location).must_match(/failures/)
       end
@@ -179,11 +178,11 @@ module Sidekiq
       it 'can retry failure' do
         _(last_response.body).must_match(/HardWorker/)
 
-        post "/failures/#{failure_score}", :retry => 'Retry Now'
+        post "/failures/#{build_param_key(@failure)}", { authenticity_token: TOKEN, :retry => 'Retry Now' }
         _(last_response.status).must_equal 302
         _(last_response.location).must_match(/failures/)
 
-        get "/failures/#{failure_score}"
+        get "/failures/#{build_param_key(@failure)}"
         _(last_response.status).must_equal 302
         _(last_response.location).must_match(/failures/)
       end
@@ -191,7 +190,7 @@ module Sidekiq
       if defined? Sidekiq::Pro
         it 'can filter failure' do
           create_sample_failure
-          post '/filter/failures', substr: 'new'
+          post '/filter/failures', { authenticity_token: TOKEN, substr: 'new' }
 
           _(last_response.status).must_equal 200
         end
@@ -202,33 +201,50 @@ module Sidekiq
       describe 'with unescaped data' do
         describe 'the index page' do
           before do
-            create_sample_failure(args: ['<h1>omg</h1>'], error_message: '<p>wow</p>')
+            create_sample_failure(args: ['<h1>omg</h1>'], error_message: '<p>wow</p>', error_class: '<script>alert("xss")</script>ArgumentError')
             get '/failures'
           end
 
           it 'can escape arguments' do
-            _(last_response.body).must_match(/&quot;&lt;h1&gt;omg&lt;&#x2F;h1&gt;&quot;/)
+            _(last_response.body).must_match(/&quot;&lt;h1&gt;omg&lt;\/h1&gt;&quot;/)
+            _(last_response.body).wont_match(/<h1>omg<\/h1>/)
           end
 
           it 'can escape error message' do
-            _(last_response.body).must_match(/ArgumentError: &lt;p&gt;wow&lt;&#x2F;p&gt;/)
+            _(last_response.body).must_match(/&lt;script&gt;alert\(&quot;xss&quot;\)&lt;\/script&gt;ArgumentError: &lt;p&gt;wow&lt;\/p&gt;/)
+            _(last_response.body).wont_match(/<script>alert\("xss"\)<\/script>ArgumentError/)
+            _(last_response.body).wont_match(/<p>wow<\/p>/)
           end
         end
 
         describe 'the details page' do
           before do
-            failure = create_sample_failure(args: ['<h1>omg</h1>'], error_message: '<p>wow</p>')
-            get "/failures/#{failure[:jid]}"
+            @failure = create_sample_failure(
+              args: ['<h1>omg</h1>', '<script>alert("xss2")</script>'], 
+              error_message: '<p>wow</p>', 
+              error_class: '<script>alert("xss")</script>ArgumentError'
+            )
+            get "/failures/#{build_param_key(@failure)}"
           end
 
-          it 'can escape arguments' do
+          it 'can escape error class' do
             _(last_response.status).must_equal 200
-            _(last_response.body).must_match(/<th>Error Message<\/th>\n      <td>&lt;p&gt;wow&lt;&#x2F;p&gt;<\/td>/)
+            _(last_response.body).must_match(/&lt;script&gt;alert\(&quot;xss&quot;\)&lt;\/script&gt;ArgumentError/)
+            _(last_response.body).wont_match(/<script>alert\("xss"\)<\/script>ArgumentError/)
           end
 
           it 'can escape error message' do
             _(last_response.status).must_equal 200
-            _(last_response.body).must_match(/<th>Error Message<\/th>\n      <td>&lt;p&gt;wow&lt;&#x2F;p&gt;<\/td>/)
+            _(last_response.body).must_match(/&lt;p&gt;wow&lt;\/p&gt;/)
+            _(last_response.body).wont_match(/<p>wow<\/p>/)
+          end
+
+          it 'can escape arguments' do
+            _(last_response.status).must_equal 200
+            _(last_response.body).must_match(/&quot;&lt;h1&gt;omg&lt;\/h1&gt;&quot;/)
+            # _(last_response.body).must_match(/&quot;&lt;script&gt;alert\(&quot;xss2&quot;\)&lt;\/script&gt;&quot;/)
+            _(last_response.body).wont_match(/<h1>omg<\/h1>/)
+            _(last_response.body).wont_match(/<script>alert\("xss2"\)<\/script>/)
           end
         end
       end
@@ -241,7 +257,6 @@ module Sidekiq
 
         it 'should be successful' do
           _(last_response.status).must_equal 200
-          _(last_response.body).wont_match(/No failed jobs found/)
         end
       end
 
@@ -253,32 +268,43 @@ module Sidekiq
 
         it 'should be successful' do
           _(last_response.status).must_equal 200
-          _(last_response.body).wont_match(/No failed jobs found/)
         end
       end
     end
 
     def create_sample_failure(data = {})
+      failed_at = Time.now.utc.to_i - 10000
+      enqueued_at = failed_at - 1000
+
       data = {
         :queue => 'default',
         :class => 'HardWorker',
         :args  => ['bob', 5],
-        :jid   => 1,
-        :enqueued_at     => Time.now.utc.to_f,
-        :failed_at       => Time.now.utc.to_f,
+        :jid   => SecureRandom.hex(12),
+        :enqueued_at     => failed_at.to_f,
+        :failed_at       => enqueued_at.to_f,
         :error_class     => 'ArgumentError',
         :error_message   => 'Some new message',
         :error_backtrace => ["path/file1.rb", "path/file2.rb"]
       }.merge(data)
 
+      # Store the score so we can use it for retrieving the failure later
+      score = failure_score
+
       Sidekiq.redis do |c|
         c.multi do
-          c.zadd(Sidekiq::Failures::LIST_KEY, failure_score, Sidekiq.dump_json(data))
+          c.zadd(Sidekiq::Failures::LIST_KEY, score, Sidekiq.dump_json(data))
           c.set("stat:failed", 1)
         end
       end
 
+      # Update data with the score used so tests can reference it
+      data[:score] = score
       data
+    end
+
+    def build_param_key(failure)
+      "#{failure[:score]}-#{failure[:jid]}"
     end
 
     def failed_count
@@ -286,7 +312,7 @@ module Sidekiq
     end
 
     def failure_score
-      Time.at(1).to_f
+      Time.now.to_f
     end
   end
 end

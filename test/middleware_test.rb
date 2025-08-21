@@ -29,11 +29,18 @@ end
 
 class SidekiqPost63
   def new_processor(boss)
-    config = Sidekiq
+    config = ::Sidekiq
     config[:queues] = ['default']
-    config[:fetch] = Sidekiq::BasicFetch.new(config)
+    config[:fetch] = ::Sidekiq::BasicFetch.new(config)
     config[:error_handlers] << Sidekiq.method(:default_error_handler)
     ::Sidekiq::Processor.new(config) { |processor, reason = nil| }
+  end
+end
+
+class SidekiqPost7
+  def new_processor(boss)
+    config = ::Sidekiq.default_configuration
+    ::Sidekiq::Processor.new(config.default_capsule) { |*args| }
   end
 end
 
@@ -42,7 +49,9 @@ module Sidekiq
     describe "Middleware" do
       def new_provider
         version = Gem::Version.new(Sidekiq::VERSION)
-        if version >= Gem::Version.new('6.4.0')
+        if version >= Gem::Version.new('7')
+          SidekiqPost7
+        elsif version >= Gem::Version.new('6.4.0')
           SidekiqPost63
         elsif version >= Gem::Version.new('6.0')
           SidekiqPre63
@@ -99,7 +108,7 @@ module Sidekiq
         assert_equal 0, failures_count
 
         assert_raises TestException do
-          @processor.process(msg)
+          @processor.send(:process, msg)
         end
 
         assert_equal 1, failures_count
@@ -112,7 +121,7 @@ module Sidekiq
         assert_equal 0, failures_count
 
         assert_raises TestException do
-          @processor.process(msg)
+          @processor.send(:process, msg)
         end
 
         assert_equal 1, failures_count
@@ -124,7 +133,7 @@ module Sidekiq
 
         assert_equal 0, failures_count
 
-        @processor.process(msg)
+        @processor.send(:process, msg)
 
         assert_equal 0, failures_count
         assert_equal 1, $invokes
@@ -136,7 +145,7 @@ module Sidekiq
         assert_equal 0, failures_count
 
         assert_raises TestException do
-          @processor.process(msg)
+          @processor.send(:process, msg)
         end
 
         assert_equal 0, failures_count
@@ -151,7 +160,7 @@ module Sidekiq
         assert_equal 0, failures_count
 
         assert_raises TestException do
-          @processor.process(msg)
+          @processor.send(:process, msg)
         end
 
         assert_equal 0, failures_count
@@ -164,7 +173,7 @@ module Sidekiq
         assert_equal 0, failures_count
 
         assert_raises TestException do
-          @processor.process(msg)
+          @processor.send(:process, msg)
         end
 
         assert_equal 0, failures_count
@@ -177,7 +186,7 @@ module Sidekiq
         assert_equal 0, failures_count
 
         assert_raises TestException do
-          @processor.process(msg)
+          @processor.send(:process, msg)
         end
 
         assert_equal 1, failures_count
@@ -190,7 +199,7 @@ module Sidekiq
         assert_equal 0, failures_count
 
         assert_raises TestException do
-          @processor.process(msg)
+          @processor.send(:process, msg)
         end
 
         assert_equal 1, failures_count
@@ -205,7 +214,7 @@ module Sidekiq
         assert_equal 0, failures_count
 
         assert_raises TestException do
-          @processor.process(msg)
+          @processor.send(:process, msg)
         end
 
         assert_equal 1, failures_count
@@ -220,7 +229,7 @@ module Sidekiq
         assert_equal 0, failures_count
 
         assert_raises TestException do
-          @processor.process(msg)
+          @processor.send(:process, msg)
         end
 
         assert_equal 1, failures_count
@@ -240,7 +249,7 @@ module Sidekiq
           processor = @provider.new_processor(boss)
 
           assert_raises TestException do
-            processor.process(msg)
+            processor.send(:process, msg)
           end
 
           boss.verify
@@ -261,7 +270,7 @@ module Sidekiq
         assert_equal 0, Sidekiq::Failures.count
 
         assert_raises TestException do
-          @processor.process(msg)
+          @processor.send(:process, msg)
         end
 
         assert_equal 1, Sidekiq::Failures.count

@@ -14,7 +14,7 @@ module Sidekiq
         # from Redis v6.2.0, zrangebyscore is deprecated and zrange with BYSCORE is used
         # option byscore is available from redis-rb v4.6.0
         results = if Gem::Version.new(conn.info["redis_version"].to_s) >= Gem::Version.new('6.2.0') &&
-                     Gem.loaded_specs['redis'].version >= Gem::Version.new('4.6.0')
+                     (Gem.loaded_specs['redis'].nil? || Gem.loaded_specs['redis'].version >= Gem::Version.new('4.6.0'))
                     conn.zrange(Sidekiq::Failures::LIST_KEY, score.to_i, score.to_i, byscore: true)
                   else
                     conn.zrangebyscore(Sidekiq::Failures::LIST_KEY, score, score)
