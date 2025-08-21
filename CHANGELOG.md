@@ -1,5 +1,10 @@
 ## Unreleased
 
+## 1.1.0
+
+  * Add support for Sidekiq 8.x (#145 @navidemad)
+  * Fix nil exception in safe_relative_time (#152 @leedrum)
+
 ## 1.0.4
 
   * Sanitize failure text on the failure details page (#144 @mcasper)
