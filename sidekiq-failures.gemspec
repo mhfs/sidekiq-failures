@@ -9,7 +9,7 @@ Gem::Specification.new do |gem|
   gem.homepage      = "https://github.com/mhfs/sidekiq-failures/"
   gem.license       = "MIT"
 
-  gem.files         = `git ls-files`.split($\)
+  gem.files         = `git ls-files lib`.split($/) + ["CHANGELOG.md", "LICENSE", "README.md"]
   gem.name          = "sidekiq-failures"
   gem.require_paths = ["lib"]
   gem.version       = Sidekiq::Failures::VERSION
