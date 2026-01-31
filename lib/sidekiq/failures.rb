@@ -11,6 +11,7 @@ require "sidekiq/failures/sorted_entry"
 require "sidekiq/failures/failure_set"
 require "sidekiq/failures/middleware"
 require "sidekiq/failures/web_extension"
+require "sidekiq/failures/stats_patch"
 
 module Sidekiq
 
@@ -88,6 +89,10 @@ module Sidekiq
 
   end
 end
+
+Sidekiq::Stats.prepend(
+  Sidekiq::Failures::StatsPatch
+)
 
 Sidekiq.configure_server do |config|
   config.server_middleware do |chain|
