@@ -197,6 +197,30 @@ module Sidekiq
       end
     end
 
+    describe 'when a failure was recorded part-way through a second' do
+      before do
+        @failure = create_sample_failure(jid: 'retried-jid', score: 1_700_000_000.25)
+      end
+
+      it 'Retry Now on the failure page puts the job back on its queue' do
+        post "/failures/#{build_param_key(@failure)}", { authenticity_token: TOKEN, retry: 'Retry Now' }
+
+        _(enqueued_jids).must_equal ['retried-jid']
+      end
+
+      it 'Retry Now on the list puts the job back on its queue' do
+        post '/failures', { authenticity_token: TOKEN, key: [build_param_key(@failure)], retry: 'Retry Now' }
+
+        _(enqueued_jids).must_equal ['retried-jid']
+      end
+
+      it 'Retry All puts the job back on its queue' do
+        post '/failures/all/retry', { authenticity_token: TOKEN }
+
+        _(enqueued_jids).must_equal ['retried-jid']
+      end
+    end
+
     describe 'when there is specific failure' do
       describe 'with unescaped data' do
         describe 'the index page' do
@@ -272,7 +296,7 @@ module Sidekiq
       end
     end
 
-    def create_sample_failure(data = {})
+    def create_sample_failure(score: failure_score, **data)
       failed_at = Time.now.utc.to_i - 10000
       enqueued_at = failed_at - 1000
 
@@ -287,9 +311,6 @@ module Sidekiq
         :error_message   => 'Some new message',
         :error_backtrace => ["path/file1.rb", "path/file2.rb"]
       }.merge(data)
-
-      # Store the score so we can use it for retrieving the failure later
-      score = failure_score
 
       Sidekiq.redis do |c|
         c.multi do
@@ -309,6 +330,10 @@ module Sidekiq
 
     def failed_count
       Sidekiq.redis { |c| c.get("stat:failed") }
+    end
+
+    def enqueued_jids
+      Sidekiq::Queue.new('default').map(&:jid)
     end
 
     def failure_score
